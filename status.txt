@@ -1,0 +1,3 @@
+docker container is up and running.
+
+train and test scripts nominally run but need to investigate loss values and model saves further.
