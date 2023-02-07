@@ -331,7 +331,7 @@ class UserInterface:
                                            image=self.white_exit_arrow_image,
                                            anchor='nw')
         elif self.game_manager.current_game_state == GameState.PLAYER_2_TURN \
-                and self.game_manager.is_black_endgame_state:
+                and self.game_manager.is_black_endgame():
 
             self.black_exit_arrow = self.img_copy_black_exit_arrow.resize((new_width_arrow, new_height_arrow))
             self.black_exit_arrow_image = ImageTk.PhotoImage(self.black_exit_arrow)
@@ -501,7 +501,7 @@ class UserInterface:
                 <= self.black_exit_arrow_button_coordinates[1]:
             black_arrow_click = 1
             if self.game_manager.current_game_state == GameState.PLAYER_2_TURN \
-                    and self.game_manager.is_black_endgame_state \
+                    and self.game_manager.is_black_endgame() \
                     and self.game_manager.current_selected_slot > -1 \
                     and self.game_manager.is_valid_move(-1):
 

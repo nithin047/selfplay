@@ -32,8 +32,8 @@ if __name__ == '__main__':
 
     # instantiate game manager object. No input parameters: starts the game at the beginning.
     # Alternatively, the object may take initial conditions to start at a desired position.
-    # my_game_manager = GameManager()
-    my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values)
+    my_game_manager = GameManager()
+    # my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values)
 
     # Instantiate GUI object
     my_gui = UserInterface(my_game_manager)
