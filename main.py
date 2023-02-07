@@ -18,17 +18,17 @@ if __name__ == '__main__':
                         [12, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]]
 
+
     # initial dice state
-    dice_values = [6, 6]
+    dice_values = [6, 1]
 
     # instantiate board object with given initial position
     my_board = Board(24, 15, initial_position)
 
     # test afterstates functions.
-    # TODO: afterstate functions work well for regular states, but will need to be defined for the endgame
-    afterstates1 = hf.get_possible_afterstates_single_dice(my_board, dice_values[0], 1)
-    afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 1)
-    afterstates = hf.get_action_space(my_board, dice_values, 1)
+    afterstates1 = hf.get_possible_afterstates_single_dice(my_board, dice_values[0], 0)
+    afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 0)
+    afterstates = hf.get_action_space(my_board, dice_values, 0)
 
     # instantiate game manager object. No input parameters: starts the game at the beginning.
     # Alternatively, the object may take initial conditions to start at a desired position.

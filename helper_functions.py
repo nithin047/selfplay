@@ -1,5 +1,6 @@
 import copy as cp
 import random as rd
+import numpy as np
 
 
 def roll_dice(n_dice_faces):
@@ -30,38 +31,30 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
         # look at where the piece would land
         if player_id == 0:
             potential_next_slot = i + dice_value
+
+            if board.is_white_endgame() and potential_next_slot >= board.n_slots:
+                if np.all(board.board_state[0, round(board.n_slots*0.75):i] == 0) \
+                        or i + dice_value == board.n_slots:
+                    potential_next_slot = -1
+                else:
+                    continue
+
         else:
             potential_next_slot = i - dice_value
+
+            if board.is_black_endgame() and potential_next_slot < 0:
+                if np.all(board.board_state[1, (i+1):round(board.n_slots*0.25)] == 0) \
+                        or i - dice_value == -1:
+                    potential_next_slot = -1
+                else:
+                    continue
 
         # copy board object
         potential_next_board_state = cp.deepcopy(board)
 
-        # if slot contains at least one player_id's piece that is not pinned, and
-        # if piece at location i is allowed to move by value of dice_value, i.e., does not exceed board and
-        # does not land on location pinned by other player and does not land on other player's bridge
-        # TODO: implement end-game case. May just call move_piece_from_slot_to_slot from Board.
-        if potential_next_board_state.n_slots > potential_next_slot >= 0 \
-                and board.board_state[player_id, i] > 0 \
-                and not board.is_player_pinned_at_location(i, player_id) \
-                and not potential_next_board_state.is_player_pinned_at_location(potential_next_slot, player_id) \
-                and potential_next_board_state.board_state[get_other_player_id(player_id), potential_next_slot] <= 1:
-
-            # if player is moving the last piece that was pinning, then mark unpinned
-            if potential_next_board_state.board_state[player_id, i] == 1 \
-                    and potential_next_board_state.is_player_pinning_at_location(i, player_id):
-                potential_next_board_state.board_state[2, i] = 0
-
-            # if player making a pinning move, then mark as pinned
-            if potential_next_board_state.board_state[get_other_player_id(player_id), potential_next_slot] == 1 \
-                    and potential_next_board_state.board_state[2, potential_next_slot] == 0:
-                potential_next_board_state.board_state[2, potential_next_slot] = mark_player_pinning(player_id)
-
-            # move piece
-            potential_next_board_state.board_state[player_id, i] = \
-                potential_next_board_state.board_state[player_id, i] - 1
-            potential_next_board_state.board_state[player_id, potential_next_slot] = \
-                potential_next_board_state.board_state[player_id, potential_next_slot] + 1
-
+        # TODO: This function call needs some more testing for the case where player_id is in endgame
+        is_move_success = potential_next_board_state.move_piece_from_slot_to_slot(i, potential_next_slot, player_id)
+        if is_move_success:
             # add afterstate to list
             afterstates_list.append(potential_next_board_state)
 

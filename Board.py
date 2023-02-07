@@ -38,7 +38,7 @@ class Board:
         # Note: This function does NOT check whether the origin/destination pair is consistent with the latest dice
         # roll!
 
-        if destination >= 0:  # if regular move
+        if self.n_slots > destination >= 0:  # if regular move
             # if player has a piece at the origin slot that is not pinned and the other player is not occupying the
             # destination slot
             if self.board_state[player_id, origin] > 0 \
@@ -63,7 +63,7 @@ class Board:
                 return False
 
         elif destination == -1:  # if end-game move
-            if player_id == 0 and self.is_white_endgame():
+            if player_id == 0 and self.is_white_endgame() and self.board_state[player_id, origin] > 0:
 
                 # if player is pinning at the origin, mark origin as unpinned
                 if self.is_player_pinning_at_location(origin, player_id) and self.board_state[player_id, origin] == 1:
@@ -71,7 +71,7 @@ class Board:
 
                 self.board_state[0, origin] = self.board_state[0, origin] - 1
                 return True
-            elif player_id == 1 and self.is_black_endgame():
+            elif player_id == 1 and self.is_black_endgame() and self.board_state[player_id, origin] > 0:
 
                 # if player is pinning at the origin, mark origin as unpinned
                 if self.is_player_pinning_at_location(origin, player_id) and self.board_state[player_id, origin] == 1:
