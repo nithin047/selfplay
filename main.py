@@ -1,9 +1,25 @@
+import xmltodict
+import argparse
+
 from game_framework.UserInterface import UserInterface
 from game_framework.GameManager import *
-import helper_functions as hf
+from game_framework import helper_functions as hf
+from utilities.format_cfg import format_cfg
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--xmlpath', nargs='?', default='./cfg/default_backgammon_cfg.xml', type=str)
+args = parser.parse_args()
+
+cfg_path = args.xmlpath
 
 if __name__ == '__main__':
+
+    with open(cfg_path) as f:
+        cfg_file = f.read()
+    cfg_dict = format_cfg(xmltodict.parse(cfg_file))
+
+    main_cfg = cfg_dict['main_options']
+
     logging.basicConfig(level=logging.INFO)
 
     # use this initial position for debugging. Instead of starting from the beginning of the game, one can start from
@@ -33,5 +49,6 @@ if __name__ == '__main__':
     my_game_manager = GameManager()
     # my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values)
 
-    # Instantiate GUI object
-    my_gui = UserInterface(my_game_manager)
+    if int(main_cfg['enable_gui']):
+        # Instantiate GUI object
+        my_gui = UserInterface(my_game_manager)
