@@ -1,5 +1,5 @@
 import numpy as np
-import helper_functions as hf
+from game_framework import helper_functions as hf
 
 
 class Board:

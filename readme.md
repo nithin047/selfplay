@@ -1,6 +1,12 @@
 # selfplay
 Training an RL agent to play backgammon++
 
+## Usage
+Run using the command:
+```commandline
+python main.py --xmlpath <path to XML cfg file>
+```
+For the format of the config XML file, refer the cfg/ subdirectory.
 
 ## Git Best Practices
 1. Name all dev branches using the template 'dev/\<description\>', e.g., dev/add_training_logging
