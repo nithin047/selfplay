@@ -1,3 +1,12 @@
+# selfplay
+Training an RL agent to play backgammon++
+
+
+## Git Best Practices
+1. Name all dev branches using the template 'dev/\<description\>', e.g., dev/add_training_logging
+2. When ready to merge code into main branch, start a pull request, wait for collaborator approval and then merge.
+
+
 ## Installing requirements
 First, install Python 3 using a method of your choice. It is recommended to create a virtual environment using the command:
 ```commandline
