@@ -2,10 +2,9 @@ import tkinter as tk
 from tkinter import *
 from PIL import Image, ImageTk
 import numpy as np
-from GameManager import GameState
+from game_framework.GameManager import GameState
 import logging
 import copy as cp
-import helper_functions as hf
 
 
 def compute_position_grid_coordinates():

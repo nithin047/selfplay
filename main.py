@@ -1,7 +1,5 @@
-from Board import Board
-from UserInterface import UserInterface
-import logging
-from GameManager import *
+from game_framework.UserInterface import UserInterface
+from game_framework.GameManager import *
 import helper_functions as hf
 
 

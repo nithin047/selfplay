@@ -1,7 +1,7 @@
 from enum import Enum
 import random as rd
 import logging
-from Board import Board
+from game_framework.Board import Board
 import numpy as np
 import helper_functions as hf
 
