@@ -100,8 +100,10 @@ class UserInterface:
 
     def __init__(self, game_manager):
 
-        self.graphic_board_matrix = np.zeros((7, 24))
         self.game_manager = game_manager
+        self.n_slots = game_manager.game_board.n_slots
+        self.graphic_board_matrix = np.zeros((7, self.n_slots))
+
         self.dice_vals = cp.deepcopy(self.game_manager.current_dice)
         self.board_to_graphics()
 
@@ -128,6 +130,7 @@ class UserInterface:
         self.board_canvas = Canvas(self.background_frame)
         self.board_canvas.pack(fill=BOTH, expand=YES)
 
+        # initialize class attributes
         self.backgammon_board_background_image = None
         self.img_copy_background = None
         self.board_image = None
@@ -159,6 +162,13 @@ class UserInterface:
 
         self.load_media_files()
 
+        self.normalized_piece_width = 0.033
+        self.normalized_piece_height = 0.033
+        self.normalized_dice_width = 0.1
+        self.normalized_dice_height = 0.1
+        self.normalized_arrow_width = 0.1
+        self.normalized_arrow_height = 0.1
+
         self.board_canvas.create_image(0, 0, image=self.backgammon_board_background_image)
 
         self.slot_button_coordinates = self.get_slot_button_coordinates()
@@ -171,6 +181,7 @@ class UserInterface:
         self.window.mainloop()
 
     def load_media_files(self):
+        # this function loads image files into the class attributes
 
         self.board_image = Image.open("Media Files/backgammon_board2.jpg")
         self.img_copy_background = self.board_image.copy()
@@ -233,7 +244,7 @@ class UserInterface:
         self.dice_1_image_foreground = ImageTk.PhotoImage(self.dice_image[self.dice_vals[0] - 1])
         self.dice_2_image_foreground = ImageTk.PhotoImage(self.dice_image[self.dice_vals[1] - 1])
 
-    def on_resize_image_event(self):
+    def on_refresh_gui_event(self):
 
         self.board_to_graphics()
 
@@ -249,15 +260,15 @@ class UserInterface:
 
         self.current_background_dimension = new_width_background
 
-        new_width_piece = round(0.033 * new_width_background)
-        new_height_piece = round(0.033 * new_height_background)
+        new_width_piece = round(self.normalized_piece_width * new_width_background)
+        new_height_piece = round(self.normalized_piece_height * new_height_background)
 
         self.board_image = self.img_copy_background.resize((new_width_background, new_height_background))
         self.backgammon_board_background_image = ImageTk.PhotoImage(self.board_image)
         self.board_canvas.create_image(0, 0, image=self.backgammon_board_background_image, anchor='nw')
 
-        new_width_dice = round(0.1 * new_width_background)
-        new_height_dice = round(0.1 * new_height_background)
+        new_width_dice = round(self.normalized_dice_width * new_width_background)
+        new_height_dice = round(self.normalized_dice_height * new_height_background)
 
         self.dice_1_image = self.img_copy_dice[self.dice_vals[0] - 1].resize((new_width_dice, new_height_dice))
         self.dice_1_image_foreground = ImageTk.PhotoImage(self.dice_1_image)
@@ -282,7 +293,7 @@ class UserInterface:
         self.white_piece_selected_image = ImageTk.PhotoImage(self.white_piece_selected)
         self.black_piece_selected_image = ImageTk.PhotoImage(self.black_piece_selected)
 
-        for i in range(24):
+        for i in range(self.n_slots):
             for j in range(7):
                 if self.graphic_board_matrix[j, i] > 0:
                     if self.game_manager.current_selected_slot == i \
@@ -319,8 +330,8 @@ class UserInterface:
         self.white_exit_arrow_button_coordinates = self.get_white_exit_arrow_button_coordinates()
         self.black_exit_arrow_button_coordinates = self.get_black_exit_arrow_button_coordinates()
 
-        new_width_arrow = round(0.1 * new_width_background)
-        new_height_arrow = round(0.1 * new_height_background)
+        new_width_arrow = round(self.normalized_arrow_width * new_width_background)
+        new_height_arrow = round(self.normalized_arrow_height * new_height_background)
 
         if self.game_manager.current_game_state == GameState.PLAYER_1_TURN \
                 and self.game_manager.is_white_endgame():
@@ -343,13 +354,13 @@ class UserInterface:
     def resize_image(self, event):
         self.last_event_height = event.height
         self.last_event_width = event.width
-        self.on_resize_image_event()
+        self.on_refresh_gui_event()
 
     def board_to_graphics(self):
         # this function converts board object into a graphic_board_matrix so the UI knows where each piece needs to
         # be displayed
 
-        self.graphic_board_matrix = np.zeros((7, 24))
+        self.graphic_board_matrix = np.zeros((7, self.n_slots))
 
         # loop over all slots
         for i in range(self.game_manager.game_board.n_slots):
@@ -423,19 +434,19 @@ class UserInterface:
         # 3rd row: upper right horizontal
         # 4th row: upper right vertical
 
-        corner_coordinates = np.zeros((4, 24))
+        corner_coordinates = np.zeros((4, self.n_slots))
 
-        for i in range(24):
-            if i < 12:
+        for i in range(self.n_slots):
+            if i < self.n_slots / 2:
                 corner_coordinates[0, i] = self.horizontal_position_grid[0, i]
-                corner_coordinates[1, i] = self.vertical_position_grid[0, i] + 0.033
-                corner_coordinates[2, i] = self.horizontal_position_grid[6, i] + 0.033
+                corner_coordinates[1, i] = self.vertical_position_grid[0, i] + self.normalized_piece_height
+                corner_coordinates[2, i] = self.horizontal_position_grid[6, i] + self.normalized_piece_width
                 corner_coordinates[3, i] = self.vertical_position_grid[6, i]
 
             else:
                 corner_coordinates[0, i] = self.horizontal_position_grid[6, i]
-                corner_coordinates[1, i] = self.vertical_position_grid[6, i] + 0.033
-                corner_coordinates[2, i] = self.horizontal_position_grid[0, i] + 0.033
+                corner_coordinates[1, i] = self.vertical_position_grid[6, i] + self.normalized_piece_height
+                corner_coordinates[2, i] = self.horizontal_position_grid[0, i] + self.normalized_piece_width
                 corner_coordinates[3, i] = self.vertical_position_grid[0, i]
 
         return corner_coordinates
@@ -466,7 +477,7 @@ class UserInterface:
                     self.game_manager.current_game_state == GameState.PLAYER_2_DICE_ROLL:
                 self.game_manager.dice_rolled()
                 self.dice_vals = self.game_manager.current_dice
-                self.on_resize_image_event()
+                self.on_refresh_gui_event()
         elif self.white_exit_arrow_button_coordinates[0] <= x_click_coord \
                 <= self.white_exit_arrow_button_coordinates[2] and \
                 self.white_exit_arrow_button_coordinates[3] <= y_click_coord \
@@ -482,15 +493,15 @@ class UserInterface:
 
                 if is_piece_successfully_moved:
                     logging.info('White piece moved to home')
-                    if np.any(np.array(
-                            self.game_manager.remaining_dice_moves) == 24 - self.game_manager.current_selected_slot):
+                    if np.any(np.array(self.game_manager.remaining_dice_moves)
+                              == self.n_slots - self.game_manager.current_selected_slot):
                         self.game_manager.remove_value_from_remaining_dice_moves(
-                            24 - self.game_manager.current_selected_slot)
+                            self.n_slots - self.game_manager.current_selected_slot)
                     else:
                         self.game_manager.remove_value_from_remaining_dice_moves(
                             max(self.game_manager.remaining_dice_moves))
                     self.game_manager.current_selected_slot = -1
-                    self.on_resize_image_event()
+                    self.on_refresh_gui_event()
                 else:
                     logging.error("Illegal move caught")
                     assert False
@@ -519,13 +530,13 @@ class UserInterface:
                         self.game_manager.remove_value_from_remaining_dice_moves(
                             max(self.game_manager.remaining_dice_moves))
                     self.game_manager.current_selected_slot = -1
-                    self.on_resize_image_event()
+                    self.on_refresh_gui_event()
                 else:
                     logging.error("Illegal move caught")
                     assert False
 
         else:
-            for i in range(24):
+            for i in range(self.n_slots):
                 if self.slot_button_coordinates[0, i] <= x_click_coord <= self.slot_button_coordinates[2, i] \
                         and self.slot_button_coordinates[3, i] <= y_click_coord <= self.slot_button_coordinates[1, i]:
                     clicked_slot = i
@@ -535,7 +546,7 @@ class UserInterface:
                                     and self.game_manager.game_board.board_state[2, clicked_slot] != -1:
                                 self.game_manager.current_selected_slot = clicked_slot
                                 logging.info('White piece selected at slot: %s', str(clicked_slot + 1))
-                                self.on_resize_image_event()
+                                self.on_refresh_gui_event()
                         elif self.game_manager.is_valid_move(clicked_slot):
 
                             is_piece_successfully_moved = \
@@ -549,7 +560,7 @@ class UserInterface:
                                 self.game_manager.remove_value_from_remaining_dice_moves(
                                     clicked_slot - self.game_manager.current_selected_slot)
                                 self.game_manager.current_selected_slot = -1
-                                self.on_resize_image_event()
+                                self.on_refresh_gui_event()
                             else:
                                 logging.error("Illegal move caught")
                                 assert False
@@ -558,7 +569,7 @@ class UserInterface:
                             logging.info('White piece unselected at slot: %s',
                                          str(self.game_manager.current_selected_slot + 1))
                             self.game_manager.current_selected_slot = -1
-                            self.on_resize_image_event()
+                            self.on_refresh_gui_event()
 
                     elif self.game_manager.current_game_state == GameState.PLAYER_2_TURN:
                         if self.game_manager.current_selected_slot == -1:
@@ -566,7 +577,7 @@ class UserInterface:
                                     and self.game_manager.game_board.board_state[2, clicked_slot] != 1:
                                 self.game_manager.current_selected_slot = clicked_slot
                                 logging.info('Black piece selected at slot: %s', str(clicked_slot + 1))
-                                self.on_resize_image_event()
+                                self.on_refresh_gui_event()
                         elif self.game_manager.is_valid_move(clicked_slot):
 
                             is_piece_successfully_moved = \
@@ -579,7 +590,7 @@ class UserInterface:
                                 self.game_manager.remove_value_from_remaining_dice_moves(
                                     self.game_manager.current_selected_slot - clicked_slot)
                                 self.game_manager.current_selected_slot = -1
-                                self.on_resize_image_event()
+                                self.on_refresh_gui_event()
                             else:
                                 logging.error("Illegal move caught")
                                 assert False
@@ -589,6 +600,6 @@ class UserInterface:
                             logging.info('Black piece unselected at slot: %s',
                                          str(self.game_manager.current_selected_slot + 1))
                             self.game_manager.current_selected_slot = -1
-                            self.on_resize_image_event()
+                            self.on_refresh_gui_event()
 
                     break
