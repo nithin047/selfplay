@@ -1,9 +1,9 @@
 from enum import Enum
 import random as rd
 import logging
-from Board import Board
+from game_framework.Board import Board
 import numpy as np
-import helper_functions as hf
+from game_framework import helper_functions as hf
 
 
 # Enum listing all the possible game states
