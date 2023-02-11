@@ -106,6 +106,13 @@ class UserInterface:
         self.dice_vals = cp.deepcopy(self.game_manager.current_dice)
         self.board_to_graphics()
 
+        self.normalized_piece_width = 0.033
+        self.normalized_piece_height = 0.033
+        self.normalized_dice_width = 0.1
+        self.normalized_dice_height = 0.1
+        self.normalized_arrow_width = 0.1
+        self.normalized_arrow_height = 0.1
+
         self.horizontal_position_grid, self.vertical_position_grid = compute_position_grid_coordinates()
         self.slot_button_rectangle_coordinates = self.compute_rectangle_button_coordinates()
         self.dice_button_rectangle_coordinates = compute_dice_button_coordinates()
@@ -160,13 +167,6 @@ class UserInterface:
         self.dice_2_image_foreground = []
 
         self.load_media_files()
-
-        self.normalized_piece_width = 0.033
-        self.normalized_piece_height = 0.033
-        self.normalized_dice_width = 0.1
-        self.normalized_dice_height = 0.1
-        self.normalized_arrow_width = 0.1
-        self.normalized_arrow_height = 0.1
 
         self.board_canvas.create_image(0, 0, image=self.backgammon_board_background_image)
 
