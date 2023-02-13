@@ -79,13 +79,34 @@ class GameManager:
 
         self.current_dice = [dice_1, dice_2]
 
+        if self.current_game_state == GameState.PLAYER_1_DICE_ROLL:
+            current_player = 0
+        elif self.current_game_state == GameState.PLAYER_2_DICE_ROLL:
+            current_player = 1
+        else:
+            logging.error("Wrong State Transition from dice roll")
+            assert False
+
         if dice_1 != dice_2:
-            self.remaining_dice_moves = [dice_1, dice_2]
+            afterstates, forbidden_dice = hf.get_action_space(self.game_board, self.current_dice, current_player)
+
+            if forbidden_dice == dice_1:
+                self.remaining_dice_moves = [dice_2]
+                logging.info('Die roll %s forbidden', dice_1)
+            elif forbidden_dice == dice_2:
+                self.remaining_dice_moves = [dice_1]
+                logging.info('Die roll %s forbidden', dice_2)
+            elif forbidden_dice == 0:
+                self.remaining_dice_moves = [dice_1, dice_2]
+            else:
+                logging.error("Dice roll error")
+                assert False
+
         else:
             self.remaining_dice_moves = [dice_1, dice_1, dice_1, dice_1]
 
         # if white's turn
-        if self.current_game_state == GameState.PLAYER_1_DICE_ROLL:
+        if current_player == 0:
             self.transition_to_state(GameState.PLAYER_1_TURN)
 
             # if white is stuck, end turn
@@ -94,8 +115,8 @@ class GameManager:
                 self.current_game_state = GameState.PLAYER_2_DICE_ROLL
                 logging.info('Game State Changed: %s --> %s', GameState.PLAYER_1_TURN, GameState.PLAYER_2_DICE_ROLL)
 
-        # else if white's turn
-        elif self.current_game_state == GameState.PLAYER_2_DICE_ROLL:
+        # else if black's turn
+        elif current_player == 1:
             self.transition_to_state(GameState.PLAYER_2_TURN)
 
             # if black is stuck, end turn
@@ -103,9 +124,6 @@ class GameManager:
                 logging.info('Player stuck! Switching turns.')
                 self.current_game_state = GameState.PLAYER_1_DICE_ROLL
                 logging.info('Game State Changed: %s --> %s', GameState.PLAYER_2_TURN, GameState.PLAYER_1_DICE_ROLL)
-        else:
-            logging.error("Wrong State Transition from dice roll")
-            assert False
 
     def is_valid_move(self, destination_slot):
         # This functions returns true if the destination slot leads to a valid move, assuming the origin slot is the
@@ -154,7 +172,7 @@ class GameManager:
         # else if endgame
         elif destination_slot == -1:
             # if white's turn
-            if self.current_game_state == GameState.PLAYER_1_TURN and self.is_white_endgame():
+            if self.current_game_state == GameState.PLAYER_1_TURN and self.game_board.is_white_endgame():
                 # loop over remaining dice moves
                 for i in range(len(self.remaining_dice_moves)):
                     local_dice_value = self.remaining_dice_moves[i]
@@ -168,7 +186,7 @@ class GameManager:
                                        round(self.game_board.n_slots*0.75):self.current_selected_slot] == 0):
                         return True
             # else if black's turn
-            elif self.current_game_state == GameState.PLAYER_2_TURN and self.is_black_endgame():
+            elif self.current_game_state == GameState.PLAYER_2_TURN and self.game_board.is_black_endgame():
                 # loop over remaining dice moves
                 for i in range(len(self.remaining_dice_moves)):
                     local_dice_value = self.remaining_dice_moves[i]
@@ -236,11 +254,11 @@ class GameManager:
         # figure out the player's turn and return false if we are in this player's endgame
         if self.current_game_state == GameState.PLAYER_1_TURN:
             player_id = 0
-            if self.is_white_endgame():
+            if self.game_board.is_white_endgame():
                 return False
         elif self.current_game_state == GameState.PLAYER_2_TURN:
             player_id = 1
-            if self.is_black_endgame():
+            if self.game_board.is_black_endgame():
                 return False
         else:
             logging.error("State Error")
@@ -258,12 +276,12 @@ class GameManager:
 
         return True
 
-    def is_white_endgame(self):
-        # This function returns true if player 1 (white) is in the endgame phase
-        # TODO: remove this function, and just call the corresponding one in Board
-        return self.game_board.is_white_endgame()
-
-    def is_black_endgame(self):
-        # This function returns true if player 2 (black) is in the endgame phase
-        # TODO: remove this function, and just call the corresponding one in Board
-        return self.game_board.is_black_endgame()
+    # def is_white_endgame(self):
+    #     # This function returns true if player 1 (white) is in the endgame phase
+    #     # TODO: remove this function, and just call the corresponding one in Board
+    #     return self.game_board.is_white_endgame()
+    #
+    # def is_black_endgame(self):
+    #     # This function returns true if player 2 (black) is in the endgame phase
+    #     # TODO: remove this function, and just call the corresponding one in Board
+    #     return self.game_board.is_black_endgame()

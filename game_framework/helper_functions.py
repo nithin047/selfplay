@@ -39,6 +39,7 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
                 else:
                     continue
 
+        # else if black's move
         else:
             potential_next_slot = i - dice_value
 
@@ -63,9 +64,10 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
 
 def get_action_space(board, dice_values, player_id):
     # This function returns the complete set of possible afterstates after moving pieces from both dice
-    # TODO: Test the function to verify that "forced moves" are working well. Particularly, if both dice can be played
-    #  individually, but not together, the rules force to play the dice with the largest value (the player does not get
-    #  the chance to choose which die to play).
+
+    # forbidden_dice takes a non-zero value whenever player is forced to play only one of the two dice, and needs to
+    # play the largest of the two dice values. forbidden_dice takes the value of the smallest of the two values.
+    forbidden_dice = 0
 
     # start with the case where both dice have different values
     if dice_values[0] != dice_values[1]:
@@ -97,7 +99,16 @@ def get_action_space(board, dice_values, player_id):
         if not action_space_list_dice_0 and not action_space_list_dice_1:
             combined_afterstates = []
         elif not action_space_list_dice_0_then_dice_1 and not action_space_list_dice_1_then_dice_0:
-            combined_afterstates = action_space_list_dice_0 + action_space_list_dice_1
+            if action_space_list_dice_0 and action_space_list_dice_1:
+                # if we can only play one die, but not both, force to play the largest value
+                if dice_values[0] > dice_values[1]:
+                    combined_afterstates = action_space_list_dice_0
+                    forbidden_dice = dice_values[1]
+                else:
+                    combined_afterstates = action_space_list_dice_1
+                    forbidden_dice = dice_values[0]
+            else:
+                combined_afterstates = action_space_list_dice_0 + action_space_list_dice_1
         else:
             combined_afterstates = action_space_list_dice_0_then_dice_1 + action_space_list_dice_0_then_dice_1
 
@@ -145,4 +156,4 @@ def get_action_space(board, dice_values, player_id):
     # Step 4: remove repeated entries: convert to set then back to list. Uniqueness guaranteed from Board hash function
     combined_afterstates = list(set(combined_afterstates))
 
-    return combined_afterstates
+    return combined_afterstates, forbidden_dice
