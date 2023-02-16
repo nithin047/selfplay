@@ -3,6 +3,7 @@ import argparse
 
 from game_framework.UserInterface import UserInterface
 from game_framework.GameManager import *
+from game_framework.LogManager import LogManager
 from game_framework import helper_functions as hf
 from utilities.format_cfg import format_cfg
 
@@ -44,11 +45,19 @@ if __name__ == '__main__':
     afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 0)
     afterstates = hf.get_action_space(my_board, dice_values, 0)
 
+    my_log_manager = LogManager()
+    enable_logs = True
+
+    # my_log_manager.write_move_to_log([5, 3], [1, 5], [6, 8], 0)
+    # my_log_manager.write_move_to_log([1, 3], [13, 21], [10, 20], 1)
+    # my_log_manager.write_move_to_log([2, 2], [0, 0, 4, 6], [2, 2, 6, 8], 0)
+    # my_log_manager.write_string_to_file()
+
     # instantiate game manager object. No input parameters: starts the game at the beginning.
     # Alternatively, the object may take initial conditions to start at a desired position.
-    my_game_manager = GameManager()
-    # my_game_manager = GameManager(my_board, GameState.PLAYER_1_DICE_ROLL, dice_values)
+    my_game_manager = GameManager(None, None, None, enable_logs)
+    # my_game_manager = GameManager(my_board, GameState.PLAYER_1_DICE_ROLL, dice_values, False)
 
     if int(main_cfg['enable_gui']):
         # Instantiate GUI object
-        my_gui = UserInterface(my_game_manager)
+        my_gui = UserInterface(my_game_manager, my_log_manager)
