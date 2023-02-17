@@ -31,17 +31,21 @@ class GameManager:
         # contains the slot id that is currently selected by the player
         self.current_selected_slot = -1
 
+        # indicates whether both dice are playable (and need to be played)
+        self.are_both_dice_playable = True
+
         # import initial conditions or display 6,6 with starting position by default
         if dice is None:
             self.current_dice = [6, 6]
             self.remaining_dice_moves = []
         else:
-            self.current_dice = dice
-
-            if dice[0] == dice[1]:
-                self.remaining_dice_moves = [dice[0], dice[0], dice[0], dice[0]]
-            else:
-                self.remaining_dice_moves = dice
+            self.dice_rolled(dice_roll=dice)
+            # self.current_dice = dice
+            #
+            # if dice[0] == dice[1]:
+            #     self.remaining_dice_moves = [dice[0], dice[0], dice[0], dice[0]]
+            # else:
+            #     self.remaining_dice_moves = dice
 
         if board is None:
             self.game_board = Board(24, 15)
@@ -88,9 +92,14 @@ class GameManager:
             self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
             logging.info("Black Starts!")
 
-    def dice_rolled(self):
+    def dice_rolled(self, dice_roll=None):
         # This function rolls the dice and populates the remaining_dice_moves list
-        dice_1, dice_2 = hf.roll_dice(6)
+
+        if dice_roll is None:
+            dice_1, dice_2 = hf.roll_dice(6)
+        else:
+            dice_1 = dice_roll[0]
+            dice_2 = dice_roll[1]
 
         self.current_dice = [dice_1, dice_2]
         self.log_manager.set_dice_roll(self.current_dice)
@@ -104,15 +113,16 @@ class GameManager:
             assert False
 
         if dice_1 != dice_2:
-            afterstates, forbidden_dice = hf.get_action_space(self.game_board, self.current_dice, current_player)
+            afterstates, forced_dice, self.are_both_dice_playable \
+                = hf.get_action_space(self.game_board, self.current_dice, current_player)
 
-            if forbidden_dice == dice_1:
-                self.remaining_dice_moves = [dice_2]
-                logging.info('Die roll %s forbidden', dice_1)
-            elif forbidden_dice == dice_2:
+            if forced_dice == dice_1:
                 self.remaining_dice_moves = [dice_1]
-                logging.info('Die roll %s forbidden', dice_2)
-            elif forbidden_dice == 0:
+                logging.info('Forced to play die %s', dice_1)
+            elif forced_dice == dice_2:
+                self.remaining_dice_moves = [dice_2]
+                logging.info('Forced to play die %s', dice_2)
+            elif forced_dice == 0:
                 self.remaining_dice_moves = [dice_1, dice_2]
             else:
                 logging.error("Dice roll error")
@@ -148,7 +158,6 @@ class GameManager:
     def is_valid_move(self, destination_slot):
         # This functions returns true if the destination slot leads to a valid move, assuming the origin slot is the
         # current_selected_slot
-        is_desired_move_valid = False
 
         # if regular move
         if destination_slot >= 0:
@@ -158,16 +167,18 @@ class GameManager:
                 # invalid move if land on occupied of pinned slot
                 if self.game_board.board_state[1, destination_slot] > 1 \
                         or self.game_board.board_state[2, destination_slot] == -1:
-                    is_desired_move_valid = False
-                    return is_desired_move_valid
+                    return False
 
                 # else it's a valid move if one of the dice corresponds to the desired jump
                 else:
                     for i in range(len(self.remaining_dice_moves)):
                         local_dice_value = self.remaining_dice_moves[i]
                         if self.current_selected_slot + local_dice_value == destination_slot:
-                            is_desired_move_valid = True
-                            return is_desired_move_valid
+                            if len(self.remaining_dice_moves) == 2:
+                                future_remaining_dice_move = self.remaining_dice_moves[1-i]
+                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board, self.current_selected_slot, destination_slot, 0, future_remaining_dice_move):
+                                    return False
+                            return True
 
             # else if black's turn
             elif self.current_game_state == GameState.PLAYER_2_TURN:
@@ -175,16 +186,18 @@ class GameManager:
                 # invalid move if land on occupied of pinned slot
                 if self.game_board.board_state[0, destination_slot] > 1 \
                         or self.game_board.board_state[2, destination_slot] == 1:
-                    is_desired_move_valid = False
-                    return is_desired_move_valid
+                    return False
 
                 # else it's a valid move if one of the dice corresponds to the desired jump
                 else:
                     for i in range(len(self.remaining_dice_moves)):
                         local_dice_value = self.remaining_dice_moves[i]
                         if self.current_selected_slot - local_dice_value == destination_slot:
-                            is_desired_move_valid = True
-                            return is_desired_move_valid
+                            if len(self.remaining_dice_moves) == 2:
+                                future_remaining_dice_move = self.remaining_dice_moves[1 - i]
+                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board, self.current_selected_slot, destination_slot, 1, future_remaining_dice_move):
+                                    return False
+                            return True
             else:
                 logging.error("State Error")
                 assert False
@@ -228,7 +241,7 @@ class GameManager:
             logging.error("Destination Error")
             assert False
 
-        return is_desired_move_valid
+        return False
 
     def remove_value_from_remaining_dice_moves(self, value_to_remove):
         # This function removes a specific dice value from the remaining_dice_moves list after it has been played
@@ -316,3 +329,5 @@ class GameManager:
             self.log_manager.add_move(origin, destination)
 
         return is_successful_move
+
+

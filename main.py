@@ -60,4 +60,4 @@ if __name__ == '__main__':
 
     if int(main_cfg['enable_gui']):
         # Instantiate GUI object
-        my_gui = UserInterface(my_game_manager, my_log_manager)
+        my_gui = UserInterface(my_game_manager)
