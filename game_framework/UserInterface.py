@@ -476,7 +476,6 @@ class UserInterface:
                     self.game_manager.current_game_state == GameState.PLAYER_2_DICE_ROLL:
                 self.game_manager.dice_rolled()
                 self.dice_vals = self.game_manager.current_dice
-
                 self.on_refresh_gui_event()
         elif self.white_exit_arrow_button_coordinates[0] <= x_click_coord \
                 <= self.white_exit_arrow_button_coordinates[2] and \
@@ -597,5 +596,4 @@ class UserInterface:
                                          str(self.game_manager.current_selected_slot + 1))
                             self.game_manager.current_selected_slot = -1
                             self.on_refresh_gui_event()
-
                     break

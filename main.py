@@ -45,13 +45,7 @@ if __name__ == '__main__':
     afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 0)
     afterstates = hf.get_action_space(my_board, dice_values, 0)
 
-    my_log_manager = LogManager()
     enable_logs = True
-
-    # my_log_manager.write_move_to_log([5, 3], [1, 5], [6, 8], 0)
-    # my_log_manager.write_move_to_log([1, 3], [13, 21], [10, 20], 1)
-    # my_log_manager.write_move_to_log([2, 2], [0, 0, 4, 6], [2, 2, 6, 8], 0)
-    # my_log_manager.write_string_to_file()
 
     # instantiate game manager object. No input parameters: starts the game at the beginning.
     # Alternatively, the object may take initial conditions to start at a desired position.
