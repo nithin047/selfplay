@@ -487,8 +487,7 @@ class UserInterface:
                     and self.game_manager.current_selected_slot > -1 \
                     and self.game_manager.is_valid_move(-1):
                 is_piece_successfully_moved = \
-                    self.game_manager.game_board \
-                        .move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 0)
+                    self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 0)
 
                 if is_piece_successfully_moved:
                     logging.info('White piece moved to home')
@@ -516,8 +515,7 @@ class UserInterface:
                     and self.game_manager.is_valid_move(-1):
 
                 is_piece_successfully_moved = \
-                    self.game_manager.game_board \
-                        .move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 1)
+                    self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 1)
 
                 if is_piece_successfully_moved:
                     logging.info('Black piece moved to home')
@@ -549,10 +547,9 @@ class UserInterface:
                         elif self.game_manager.is_valid_move(clicked_slot):
 
                             is_piece_successfully_moved = \
-                                self.game_manager.game_board \
-                                    .move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
-                                                                  clicked_slot,
-                                                                  0)
+                                self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
+                                                                               clicked_slot,
+                                                                               0)
 
                             if is_piece_successfully_moved:
                                 logging.info('White piece moved to slot: %s', str(clicked_slot + 1))
@@ -580,10 +577,9 @@ class UserInterface:
                         elif self.game_manager.is_valid_move(clicked_slot):
 
                             is_piece_successfully_moved = \
-                                self.game_manager.game_board \
-                                    .move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
-                                                                  clicked_slot,
-                                                                  1)
+                                self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
+                                                                               clicked_slot,
+                                                                               1)
                             if is_piece_successfully_moved:
                                 logging.info('Black piece moved to slot: %s', str(clicked_slot + 1))
                                 self.game_manager.remove_value_from_remaining_dice_moves(
@@ -600,5 +596,4 @@ class UserInterface:
                                          str(self.game_manager.current_selected_slot + 1))
                             self.game_manager.current_selected_slot = -1
                             self.on_refresh_gui_event()
-
                     break

@@ -65,9 +65,12 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
 def get_action_space(board, dice_values, player_id):
     # This function returns the complete set of possible afterstates after moving pieces from both dice
 
-    # forbidden_dice takes a non-zero value whenever player is forced to play only one of the two dice, and needs to
-    # play the largest of the two dice values. forbidden_dice takes the value of the smallest of the two values.
-    forbidden_dice = 0
+    # forced_dice takes a non-zero value whenever player is forced to play only one of the two dice, and needs to
+    # play the largest of the two dice values. forced_dice takes the value of the largest of the two values.
+    forced_dice = 0
+
+    # are_both_dice_playable is true when the player has at least one legal move where both dice are used
+    are_both_dice_playable = False
 
     # start with the case where both dice have different values
     if dice_values[0] != dice_values[1]:
@@ -103,13 +106,14 @@ def get_action_space(board, dice_values, player_id):
                 # if we can only play one die, but not both, force to play the largest value
                 if dice_values[0] > dice_values[1]:
                     combined_afterstates = action_space_list_dice_0
-                    forbidden_dice = dice_values[1]
+                    forced_dice = dice_values[0]
                 else:
                     combined_afterstates = action_space_list_dice_1
-                    forbidden_dice = dice_values[0]
+                    forced_dice = dice_values[1]
             else:
                 combined_afterstates = action_space_list_dice_0 + action_space_list_dice_1
         else:
+            are_both_dice_playable = True
             combined_afterstates = action_space_list_dice_0_then_dice_1 + action_space_list_dice_0_then_dice_1
 
     # else, if the dice have the same value
@@ -156,4 +160,31 @@ def get_action_space(board, dice_values, player_id):
     # Step 4: remove repeated entries: convert to set then back to list. Uniqueness guaranteed from Board hash function
     combined_afterstates = list(set(combined_afterstates))
 
-    return combined_afterstates, forbidden_dice
+    return combined_afterstates, forced_dice, are_both_dice_playable
+
+
+def would_move_get_player_stuck(board, origin, destination, player_id, remaining_dice_move):
+    # copy board
+    potential_next_board = cp.deepcopy(board)
+
+    # move piece
+    is_success = potential_next_board.move_piece_from_slot_to_slot(origin, destination, player_id)
+
+    # check that the move was successful
+    assert is_success
+
+    if player_id == 0 and potential_next_board.is_white_endgame():
+        return False
+    elif player_id == 1 and potential_next_board.is_black_endgame():
+        return False
+
+    action_space = get_possible_afterstates_single_dice(potential_next_board, remaining_dice_move, player_id)
+
+    # if action_space is not empty, player is not stuck
+    if action_space:
+        return False
+    else:
+        return True
+
+
+
