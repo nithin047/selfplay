@@ -46,11 +46,27 @@ class LogManager:
         for i in range(len(self.source_list)):
             logged_string += str(self.source_list[i]) + "/" + str(self.destination_list[i]) + " "
 
+        if not self.source_list:
+            logged_string += 'X'
+
         self.log_data_string.append(logged_string)
         self.source_list = []
         self.destination_list = []
         self.dice_roll = []
         self.player_id = -1
+
+    def mark_game_over(self, player, points):
+        logged_string = "*** "
+        if player == 0:
+            logged_string += "WHITE WINS! "
+        elif player == 1:
+            logged_string += "BLACK WINS! "
+        else:
+            assert False
+
+        logged_string += str(points)
+        logged_string += " POINTS. ***"
+        self.log_data_string.append(logged_string)
 
     def add_move(self, source, destination):
         self.source_list.append(source)
