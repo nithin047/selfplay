@@ -1,3 +1,19 @@
-<main_options>
-    <enable_gui>1</enable_gui>
-</main_options>
+<settings>
+
+    <main_options>
+        <enable_gui>1</enable_gui>
+        <init_model>0</init_model>
+    </main_options>
+
+    <model>
+        <model_type>MLP</model_type>
+        <!--values below are currently dummy values-->
+        <input_size>10</input_size>
+        <output_size>10</output_size>
+        <hidden_layers>[50, 50]</hidden_layers>
+        <hidden_layer_activation>relu</hidden_layer_activation>
+        <output_activation>softmax</output_activation>
+    </model>
+
+</settings>
+
