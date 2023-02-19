@@ -1,5 +1,6 @@
 import xmltodict
 import argparse
+from model.define_model import initialize_ml_model
 
 from game_framework.UserInterface import UserInterface
 from game_framework.GameManager import *
@@ -52,6 +53,9 @@ if __name__ == '__main__':
     my_game_manager = GameManager(None, None, None, enable_logs)
     # my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values, False)
 
-    if int(main_cfg['enable_gui']):
+    if main_cfg['enable_gui']:
         # Instantiate GUI object
         my_gui = UserInterface(my_game_manager)
+
+    if main_cfg['init_model']:
+        model = initialize_ml_model(cfg_dict['model'])
