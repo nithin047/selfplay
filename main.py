@@ -63,4 +63,4 @@ if __name__ == '__main__':
         model = initialize_ml_model(cfg_dict['model'])
 
     if main_cfg['game_playthrough']:
-        game_playthrough(cfg_dict['gameplay'])
+        game_playthrough(cfg_dict)
