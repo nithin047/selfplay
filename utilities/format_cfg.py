@@ -26,6 +26,8 @@ def format_cfg_value(cfg_item):
         elif cfg_item.startswith('[') and cfg_item.endswith(']'):
             cfg_item = cfg_item.replace('[', '').replace(']', '').replace(' ', '')
             temp_list = cfg_item.split(',')
+            if temp_list == ['']:
+                return ''
             return [float(element) for element in temp_list]
 
         else:

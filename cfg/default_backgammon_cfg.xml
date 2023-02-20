@@ -1,19 +1,25 @@
 <settings>
 
     <main_options>
+        <test_functionality>1</test_functionality>
         <enable_gui>1</enable_gui>
         <init_model>0</init_model>
+        <game_playthrough>0</game_playthrough>
     </main_options>
 
     <model>
         <model_type>MLP</model_type>
-        <!--values below are currently dummy values-->
-        <input_size>10</input_size>
-        <output_size>10</output_size>
+        <input_size>72</input_size>
+        <output_size>1</output_size>
         <hidden_layers>[50, 50]</hidden_layers>
         <hidden_layer_activation>relu</hidden_layer_activation>
-        <output_activation>softmax</output_activation>
+        <output_activation>none</output_activation>
     </model>
+
+    <gameplay>
+        <action_choice>random</action_choice>
+        <model_choice>[]</model_choice>
+    </gameplay>
 
 </settings>
 
