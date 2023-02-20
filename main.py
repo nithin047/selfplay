@@ -3,7 +3,7 @@ import argparse
 
 from game_framework.UserInterface import UserInterface
 from game_framework.GameManager import *
-from game_framework.LogManager import LogManager
+from game_framework.UserInterfaceLogAnimation import UserInterfaceLogAnimation
 from game_framework import helper_functions as hf
 from utilities.format_cfg import format_cfg
 
@@ -29,13 +29,13 @@ if __name__ == '__main__':
     #                     [3, 2, 1, 7, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     #                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-    initial_position = [[13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 5],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    initial_position = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 10, 1, 0],
+                        [9, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0]]
 
 
     # initial dice state
-    dice_values = [6, 4]
+    dice_values = [6, 6]
 
     # instantiate board object with given initial position
     my_board = Board(24, 15, initial_position)
@@ -46,12 +46,14 @@ if __name__ == '__main__':
     afterstates = hf.get_action_space(my_board, dice_values, 0)
 
     enable_logs = True
+    log_file_path = "Logs/20230218/game_log_20230218_001956.txt"
 
     # instantiate game manager object. No input parameters: starts the game at the beginning.
     # Alternatively, the object may take initial conditions to start at a desired position.
     my_game_manager = GameManager(None, None, None, enable_logs)
-    # my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values, False)
+    # my_game_manager = GameManager(my_board, GameState.PLAYER_2_TURN, dice_values, False)
 
     if int(main_cfg['enable_gui']):
         # Instantiate GUI object
         my_gui = UserInterface(my_game_manager)
+        my_log_animation_gui = UserInterfaceLogAnimation(log_file_path)

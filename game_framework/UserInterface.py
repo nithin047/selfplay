@@ -97,9 +97,12 @@ def compute_black_exit_arrow_button_coordinates():
 
 class UserInterface:
 
-    def __init__(self, game_manager):
+    def __init__(self, game_manager, mode=1):
 
         self.game_manager = game_manager
+        self.user_interface_mode = mode
+        assert(mode == 1 or mode == 2)
+
         self.n_slots = game_manager.game_board.n_slots
         self.graphic_board_matrix = np.zeros((7, self.n_slots))
 
@@ -122,8 +125,8 @@ class UserInterface:
         # setup GUI
         self.window = tk.Tk()
         self.window.title("Backgammon")
-        self.window.geometry("612x612")
         self.original_image_dimensions = [612, 612]
+        self.window.geometry(f'{self.original_image_dimensions[0]}x{self.original_image_dimensions[1]}')
         self.current_background_dimension = 612
 
         self.last_event_height = 612
@@ -161,6 +164,8 @@ class UserInterface:
         self.img_copy_black_piece_selected = None
         self.black_piece_selected = None
 
+        self.selected_piece_image_handle = None
+
         self.dice_1_image = []
         self.dice_2_image = []
         self.dice_1_image_foreground = []
@@ -175,9 +180,9 @@ class UserInterface:
         self.white_exit_arrow_button_coordinates = self.get_white_exit_arrow_button_coordinates()
         self.black_exit_arrow_button_coordinates = self.get_black_exit_arrow_button_coordinates()
 
-        self.board_canvas.bind("<Button-1>", self.on_button_click)
-
-        self.window.mainloop()
+        if self.user_interface_mode == 1:
+            self.board_canvas.bind("<Button-1>", self.on_button_click)
+            self.window.mainloop()
 
     def load_media_files(self):
         # this function loads image files into the class attributes
@@ -298,7 +303,7 @@ class UserInterface:
                     if self.game_manager.current_selected_slot == i \
                             and np.all(self.graphic_board_matrix[j + 1:7, i] == 0):
                         assert (self.graphic_board_matrix[j, i] == 1)
-                        self.board_canvas.create_image(
+                        self.selected_piece_image_handle = self.board_canvas.create_image(
                             round(self.horizontal_position_grid[j, i] * new_width_background),
                             round(self.vertical_position_grid[j, i] * new_height_background),
                             image=self.white_piece_selected_image, anchor='nw')
@@ -312,7 +317,7 @@ class UserInterface:
                     if self.game_manager.current_selected_slot == i \
                             and np.all(self.graphic_board_matrix[j + 1:7, i] == 0):
                         assert (self.graphic_board_matrix[j, i] == -1)
-                        self.board_canvas.create_image(
+                        self.selected_piece_image_handle = self.board_canvas.create_image(
                             round(self.horizontal_position_grid[j, i] * new_width_background),
                             round(self.vertical_position_grid[j, i] * new_height_background),
                             image=self.black_piece_selected_image,
@@ -465,135 +470,148 @@ class UserInterface:
     def on_button_click(self, event):
         x_click_coord = event.x
         y_click_coord = event.y
+        self.on_click_coordinates(x_click_coord, y_click_coord)
+
+    def on_click_coordinates(self, x_click_coord, y_click_coord):
 
         if x_click_coord <= 30 and y_click_coord <= 30:
             debug = 1
 
         if self.dice_button_coordinates[0] <= x_click_coord <= self.dice_button_coordinates[2] and \
                 self.dice_button_coordinates[3] <= y_click_coord <= self.dice_button_coordinates[1]:
-            dice_click = 1
-            if self.game_manager.current_game_state == GameState.PLAYER_1_DICE_ROLL or \
-                    self.game_manager.current_game_state == GameState.PLAYER_2_DICE_ROLL:
-                self.game_manager.dice_rolled()
-                self.dice_vals = self.game_manager.current_dice
-                self.on_refresh_gui_event()
+            self.on_dice_click()
+
         elif self.white_exit_arrow_button_coordinates[0] <= x_click_coord \
                 <= self.white_exit_arrow_button_coordinates[2] and \
                 self.white_exit_arrow_button_coordinates[3] <= y_click_coord \
                 <= self.white_exit_arrow_button_coordinates[1]:
-            white_arrow_click = 1
-            if self.game_manager.current_game_state == GameState.PLAYER_1_TURN \
-                    and self.game_manager.game_board.is_white_endgame() \
-                    and self.game_manager.current_selected_slot > -1 \
-                    and self.game_manager.is_valid_move(-1):
-                is_piece_successfully_moved = \
-                    self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 0)
-
-                if is_piece_successfully_moved:
-                    logging.info('White piece moved to home')
-                    if np.any(np.array(self.game_manager.remaining_dice_moves)
-                              == self.n_slots - self.game_manager.current_selected_slot):
-                        self.game_manager.remove_value_from_remaining_dice_moves(
-                            self.n_slots - self.game_manager.current_selected_slot)
-                    else:
-                        self.game_manager.remove_value_from_remaining_dice_moves(
-                            max(self.game_manager.remaining_dice_moves))
-                    self.game_manager.current_selected_slot = -1
-                    self.on_refresh_gui_event()
-                else:
-                    logging.error("Illegal move caught")
-                    assert False
+            self.on_white_arrow_click()
 
         elif self.black_exit_arrow_button_coordinates[0] <= x_click_coord \
                 <= self.black_exit_arrow_button_coordinates[2] \
                 and self.black_exit_arrow_button_coordinates[3] <= y_click_coord \
                 <= self.black_exit_arrow_button_coordinates[1]:
-            black_arrow_click = 1
-            if self.game_manager.current_game_state == GameState.PLAYER_2_TURN \
-                    and self.game_manager.game_board.is_black_endgame() \
-                    and self.game_manager.current_selected_slot > -1 \
-                    and self.game_manager.is_valid_move(-1):
-
-                is_piece_successfully_moved = \
-                    self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 1)
-
-                if is_piece_successfully_moved:
-                    logging.info('Black piece moved to home')
-                    if np.any(np.array(
-                            self.game_manager.remaining_dice_moves) == 1 + self.game_manager.current_selected_slot):
-                        self.game_manager.remove_value_from_remaining_dice_moves(
-                            1 + self.game_manager.current_selected_slot)
-                    else:
-                        self.game_manager.remove_value_from_remaining_dice_moves(
-                            max(self.game_manager.remaining_dice_moves))
-                    self.game_manager.current_selected_slot = -1
-                    self.on_refresh_gui_event()
-                else:
-                    logging.error("Illegal move caught")
-                    assert False
+            self.on_black_arrow_click()
 
         else:
             for i in range(self.n_slots):
                 if self.slot_button_coordinates[0, i] <= x_click_coord <= self.slot_button_coordinates[2, i] \
                         and self.slot_button_coordinates[3, i] <= y_click_coord <= self.slot_button_coordinates[1, i]:
                     clicked_slot = i
-                    if self.game_manager.current_game_state == GameState.PLAYER_1_TURN:
-                        if self.game_manager.current_selected_slot == -1:
-                            if self.game_manager.game_board.board_state[0, clicked_slot] > 0 \
-                                    and self.game_manager.game_board.board_state[2, clicked_slot] != -1:
-                                self.game_manager.current_selected_slot = clicked_slot
-                                logging.info('White piece selected at slot: %s', str(clicked_slot + 1))
-                                self.on_refresh_gui_event()
-                        elif self.game_manager.is_valid_move(clicked_slot):
-
-                            is_piece_successfully_moved = \
-                                self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
-                                                                               clicked_slot,
-                                                                               0)
-
-                            if is_piece_successfully_moved:
-                                logging.info('White piece moved to slot: %s', str(clicked_slot + 1))
-                                self.game_manager.remove_value_from_remaining_dice_moves(
-                                    clicked_slot - self.game_manager.current_selected_slot)
-                                self.game_manager.current_selected_slot = -1
-                                self.on_refresh_gui_event()
-                            else:
-                                logging.error("Illegal move caught")
-                                assert False
-                            self.game_manager.current_selected_slot = -1
-                        else:
-                            logging.info('White piece unselected at slot: %s',
-                                         str(self.game_manager.current_selected_slot + 1))
-                            self.game_manager.current_selected_slot = -1
-                            self.on_refresh_gui_event()
-
-                    elif self.game_manager.current_game_state == GameState.PLAYER_2_TURN:
-                        if self.game_manager.current_selected_slot == -1:
-                            if self.game_manager.game_board.board_state[1, clicked_slot] > 0 \
-                                    and self.game_manager.game_board.board_state[2, clicked_slot] != 1:
-                                self.game_manager.current_selected_slot = clicked_slot
-                                logging.info('Black piece selected at slot: %s', str(clicked_slot + 1))
-                                self.on_refresh_gui_event()
-                        elif self.game_manager.is_valid_move(clicked_slot):
-
-                            is_piece_successfully_moved = \
-                                self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
-                                                                               clicked_slot,
-                                                                               1)
-                            if is_piece_successfully_moved:
-                                logging.info('Black piece moved to slot: %s', str(clicked_slot + 1))
-                                self.game_manager.remove_value_from_remaining_dice_moves(
-                                    self.game_manager.current_selected_slot - clicked_slot)
-                                self.game_manager.current_selected_slot = -1
-                                self.on_refresh_gui_event()
-                            else:
-                                logging.error("Illegal move caught")
-                                assert False
-
-                            self.game_manager.current_selected_slot = -1
-                        else:
-                            logging.info('Black piece unselected at slot: %s',
-                                         str(self.game_manager.current_selected_slot + 1))
-                            self.game_manager.current_selected_slot = -1
-                            self.on_refresh_gui_event()
+                    self.on_slot_click(clicked_slot)
                     break
+
+    def on_dice_click(self):
+        if self.game_manager.current_game_state == GameState.PLAYER_1_DICE_ROLL or \
+                self.game_manager.current_game_state == GameState.PLAYER_2_DICE_ROLL:
+            self.game_manager.dice_rolled()
+            self.dice_vals = self.game_manager.current_dice
+            self.on_refresh_gui_event()
+
+    def on_white_arrow_click(self):
+        if self.game_manager.current_game_state == GameState.PLAYER_1_TURN \
+                and self.game_manager.game_board.is_white_endgame() \
+                and self.game_manager.current_selected_slot > -1 \
+                and self.game_manager.is_valid_move(-1):
+            is_piece_successfully_moved = \
+                self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 0)
+
+            if is_piece_successfully_moved:
+                logging.info('White piece moved to home')
+                if np.any(np.array(self.game_manager.remaining_dice_moves)
+                          == self.n_slots - self.game_manager.current_selected_slot):
+                    self.game_manager.remove_value_from_remaining_dice_moves(
+                        self.n_slots - self.game_manager.current_selected_slot)
+                else:
+                    self.game_manager.remove_value_from_remaining_dice_moves(
+                        max(self.game_manager.remaining_dice_moves))
+                self.game_manager.current_selected_slot = -1
+                self.on_refresh_gui_event()
+            else:
+                logging.error("Illegal move caught")
+                assert False
+
+    def on_black_arrow_click(self):
+        if self.game_manager.current_game_state == GameState.PLAYER_2_TURN \
+                and self.game_manager.game_board.is_black_endgame() \
+                and self.game_manager.current_selected_slot > -1 \
+                and self.game_manager.is_valid_move(-1):
+
+            is_piece_successfully_moved = \
+                self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot, -1, 1)
+
+            if is_piece_successfully_moved:
+                logging.info('Black piece moved to home')
+                if np.any(np.array(
+                        self.game_manager.remaining_dice_moves) == 1 + self.game_manager.current_selected_slot):
+                    self.game_manager.remove_value_from_remaining_dice_moves(
+                        1 + self.game_manager.current_selected_slot)
+                else:
+                    self.game_manager.remove_value_from_remaining_dice_moves(
+                        max(self.game_manager.remaining_dice_moves))
+                self.game_manager.current_selected_slot = -1
+                self.on_refresh_gui_event()
+            else:
+                logging.error("Illegal move caught")
+                assert False
+
+    def on_slot_click(self, clicked_slot):
+        if self.game_manager.current_game_state == GameState.PLAYER_1_TURN:
+            if self.game_manager.current_selected_slot == -1:
+                if self.game_manager.game_board.board_state[0, clicked_slot] > 0 \
+                        and self.game_manager.game_board.board_state[2, clicked_slot] != -1:
+                    self.game_manager.current_selected_slot = clicked_slot
+                    logging.info('White piece selected at slot: %s', str(clicked_slot + 1))
+                    self.on_refresh_gui_event()
+            elif self.game_manager.is_valid_move(clicked_slot):
+
+                is_piece_successfully_moved = \
+                    self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
+                                                                   clicked_slot,
+                                                                   0)
+
+                if is_piece_successfully_moved:
+                    logging.info('White piece moved to slot: %s', str(clicked_slot + 1))
+                    self.game_manager.remove_value_from_remaining_dice_moves(
+                        clicked_slot - self.game_manager.current_selected_slot)
+                    self.game_manager.current_selected_slot = -1
+                    self.on_refresh_gui_event()
+                else:
+                    logging.error("Illegal move caught")
+                    assert False
+                self.game_manager.current_selected_slot = -1
+            else:
+                logging.info('White piece unselected at slot: %s',
+                             str(self.game_manager.current_selected_slot + 1))
+                self.game_manager.current_selected_slot = -1
+                self.on_refresh_gui_event()
+
+        elif self.game_manager.current_game_state == GameState.PLAYER_2_TURN:
+            if self.game_manager.current_selected_slot == -1:
+                if self.game_manager.game_board.board_state[1, clicked_slot] > 0 \
+                        and self.game_manager.game_board.board_state[2, clicked_slot] != 1:
+                    self.game_manager.current_selected_slot = clicked_slot
+                    logging.info('Black piece selected at slot: %s', str(clicked_slot + 1))
+                    self.on_refresh_gui_event()
+            elif self.game_manager.is_valid_move(clicked_slot):
+
+                is_piece_successfully_moved = \
+                    self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
+                                                                   clicked_slot,
+                                                                   1)
+                if is_piece_successfully_moved:
+                    logging.info('Black piece moved to slot: %s', str(clicked_slot + 1))
+                    self.game_manager.remove_value_from_remaining_dice_moves(
+                        self.game_manager.current_selected_slot - clicked_slot)
+                    self.game_manager.current_selected_slot = -1
+                    self.on_refresh_gui_event()
+                else:
+                    logging.error("Illegal move caught")
+                    assert False
+
+                self.game_manager.current_selected_slot = -1
+            else:
+                logging.info('Black piece unselected at slot: %s',
+                             str(self.game_manager.current_selected_slot + 1))
+                self.game_manager.current_selected_slot = -1
+                self.on_refresh_gui_event()
