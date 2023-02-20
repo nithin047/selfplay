@@ -1,10 +1,10 @@
 <settings>
 
     <main_options>
-        <test_functionality>0</test_functionality>
-        <enable_gui>0</enable_gui>
+        <test_functionality>1</test_functionality>
+        <enable_gui>1</enable_gui>
         <init_model>0</init_model>
-        <game_playthrough>1</game_playthrough>
+        <game_playthrough>0</game_playthrough>
     </main_options>
 
     <model>
