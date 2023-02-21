@@ -4,7 +4,8 @@ from model.define_model import initialize_ml_model
 
 from game_framework.UserInterface import UserInterface
 from game_framework.GameManager import *
-from game_framework.LogManager import LogManager
+from game_framework.UserInterfaceLogAnimation import UserInterfaceLogAnimation
+from game_framework.UserInterfaceGameplay import UserInterfaceGameplay
 from game_framework import helper_functions as hf
 from utilities.format_cfg import format_cfg
 from gameplay.gameplay_main import game_playthrough
@@ -32,6 +33,7 @@ if __name__ == '__main__':
         #                     [3, 2, 1, 7, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         #                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
+
         initial_position = [[13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                             [0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 2, 0, 0, 0, 0, 5],
                             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
@@ -55,9 +57,13 @@ if __name__ == '__main__':
         # my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values, False)
 
     if main_cfg['enable_gui']:
+        enable_logs = bool(main_cfg['enable_logs'])
+        log_file_path = "Logs/20230218/game_log_20230218_001956.txt"
         my_game_manager = GameManager(None, None, None, enable_logs)
+        # my_game_manager = GameManager(my_board, GameState.PLAYER_2_TURN, dice_values, False)
         # Instantiate GUI object
-        my_gui = UserInterface(my_game_manager)
+        my_gameplay_gui = UserInterfaceGameplay(my_game_manager)
+        my_log_animation_gui = UserInterfaceLogAnimation(log_file_path)
 
     if main_cfg['init_model']:
         model = initialize_ml_model(cfg_dict['model'])
