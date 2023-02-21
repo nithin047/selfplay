@@ -1,3 +1,4 @@
 <main_options>
     <enable_gui>1</enable_gui>
+    <enable_logs>1</enable_logs>
 </main_options>

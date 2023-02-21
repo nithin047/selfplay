@@ -58,12 +58,6 @@ class GameManager:
             elif self.current_game_state == GameState.PLAYER_2_TURN:
                 self.current_game_state = GameState.PLAYER_2_DICE_ROLL
             self.dice_rolled(dice_roll=dice)
-            # self.current_dice = dice
-            #
-            # if dice[0] == dice[1]:
-            #     self.remaining_dice_moves = [dice[0], dice[0], dice[0], dice[0]]
-            # else:
-            #     self.remaining_dice_moves = dice
 
     def transition_to_state(self, new_state):
         # This function transitions the game state to new_state
@@ -86,9 +80,13 @@ class GameManager:
                 self.log_manager.write_move_to_log()
             self.log_manager.set_player(1)
 
-    def determine_first_player(self):
-        # This function selects a first player at random
-        first_player = rd.randint(1, 2)
+    def determine_first_player(self, player_id=None):
+        # This function selects a first player at random or from input if provided
+        if player_id is None:
+            first_player = rd.randint(1, 2)
+        else:
+            first_player = player_id
+
         if first_player == 1:
             self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
             logging.info("White Starts!")

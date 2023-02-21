@@ -4,6 +4,7 @@ import argparse
 from game_framework.UserInterface import UserInterface
 from game_framework.GameManager import *
 from game_framework.UserInterfaceLogAnimation import UserInterfaceLogAnimation
+from game_framework.UserInterfaceGameplay import UserInterfaceGameplay
 from game_framework import helper_functions as hf
 from utilities.format_cfg import format_cfg
 
@@ -29,13 +30,13 @@ if __name__ == '__main__':
     #                     [3, 2, 1, 7, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     #                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-    initial_position = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 10, 1, 0],
-                        [9, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0],
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0]]
+    initial_position = [[0, 0, 0, 0, 2, 2, 3, 0, 2, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0],
+                        [0, 1, 0, 0, 0, 0, 0, 2, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 5],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0]]
 
 
     # initial dice state
-    dice_values = [6, 6]
+    dice_values = [5, 3]
 
     # instantiate board object with given initial position
     my_board = Board(24, 15, initial_position)
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 0)
     afterstates = hf.get_action_space(my_board, dice_values, 0)
 
-    enable_logs = True
+    enable_logs = bool(main_cfg['enable_logs'])
     log_file_path = "Logs/20230218/game_log_20230218_001956.txt"
 
     # instantiate game manager object. No input parameters: starts the game at the beginning.
@@ -55,5 +56,5 @@ if __name__ == '__main__':
 
     if int(main_cfg['enable_gui']):
         # Instantiate GUI object
-        my_gui = UserInterface(my_game_manager)
+        my_gameplay_gui = UserInterfaceGameplay(my_game_manager)
         my_log_animation_gui = UserInterfaceLogAnimation(log_file_path)

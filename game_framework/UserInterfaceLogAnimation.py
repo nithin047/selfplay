@@ -2,12 +2,12 @@ from game_framework.GameManager import GameManager
 from game_framework.UserInterface import UserInterface
 import numpy as np
 import time
+from game_framework.GameManager import GameState
+import logging
 
 
 class UserInterfaceLogAnimation(UserInterface):
     def __init__(self, log_file_path):
-        my_game_manager = GameManager(None, None, None, False)
-        UserInterface.__init__(self, my_game_manager, 2)
 
         self.log_file_path = log_file_path
         self.player_list = []
@@ -17,7 +17,20 @@ class UserInterfaceLogAnimation(UserInterface):
         self.dice_2_list = []
         self.load_log()
 
-        self.board_canvas.bind("<Button-1>", self.on_button_click_animation_mode)
+        if self.player_list[0] == 1:
+            initial_state = GameState.PLAYER_1_DICE_ROLL
+            logging.info("White Starts!")
+        elif self.player_list[0] == 2:
+            initial_state = GameState.PLAYER_2_DICE_ROLL
+            logging.info("Black Starts!")
+        else:
+            logging.error("First player initialization error")
+            assert False
+
+        my_game_manager = GameManager(None, initial_state, None, False)
+        UserInterface.__init__(self, my_game_manager)
+
+        self.board_canvas.bind("<Button-1>", self.start_animation)
         self.window.mainloop()
 
     def load_log(self):
@@ -45,7 +58,7 @@ class UserInterfaceLogAnimation(UserInterface):
                                 self.destination_move_list.append(-2)
                                 del split_data[0]
 
-    def on_button_click_animation_mode(self, event):
+    def start_animation(self, event):
         x_click_coord = event.x
         y_click_coord = event.y
 
@@ -55,11 +68,11 @@ class UserInterfaceLogAnimation(UserInterface):
                 self.game_manager.dice_rolled(self.dice_vals)
                 self.on_refresh_gui_event()
                 self.window.update()
-                time.sleep(0.3)
+                time.sleep(0.2)
             self.on_slot_click(self.source_move_list[i])
             self.on_refresh_gui_event()
             self.window.update()
-            time.sleep(0.3)
+            time.sleep(0.2)
             if self.destination_move_list[i] != -1:
                 self.on_slot_click(self.destination_move_list[i])
             elif self.player_list[i] == 1:
@@ -70,15 +83,4 @@ class UserInterfaceLogAnimation(UserInterface):
                 assert False
             self.on_refresh_gui_event()
             self.window.update()
-            time.sleep(0.3)
-
-        a = 0
-
-    def run_animation_mode(self):
-        for i in range(len(self.player_list)):
-            time.sleep(0.5)
-            self.dice_vals = [self.dice_1_list[0], self.dice_1_list[1]]
-            self.game_manager.dice_rolled(self.dice_vals)
-            self.on_refresh_gui_event()
-            break
-
+            time.sleep(0.2)
