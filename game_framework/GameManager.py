@@ -182,7 +182,8 @@ class GameManager:
                     for i in range(len(self.remaining_dice_moves)):
                         local_dice_value = self.remaining_dice_moves[i]
                         if self.current_selected_slot + local_dice_value == destination_slot:
-                            if len(self.remaining_dice_moves) == 2:
+                            if len(self.remaining_dice_moves) == 2 \
+                                    and self.remaining_dice_moves[0] != self.remaining_dice_moves[1]:
                                 future_remaining_dice_move = self.remaining_dice_moves[1-i]
                                 if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board, self.current_selected_slot, destination_slot, 0, future_remaining_dice_move):
                                     return False
