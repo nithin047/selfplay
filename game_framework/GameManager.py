@@ -5,6 +5,7 @@ from game_framework.Board import Board
 import numpy as np
 from game_framework import helper_functions as hf
 from game_framework.LogManager import LogManager
+import copy as cp
 
 
 # Enum listing all the possible game states
@@ -33,6 +34,12 @@ class GameManager:
 
         # indicates whether both dice are playable (and need to be played)
         self.are_both_dice_playable = True
+
+        # contains all valid afterstates and intermediate states after each dice roll
+        self.combined_afterstates_and_intermediate_states = []
+
+        # contains remaining dice for all valid afterstates and intermediate states after each dice roll
+        self.combined_afterstates_and_intermediate_states_remaining_dice = []
 
         # import initial conditions or display 6,6 with starting position by default
         if board is None:
@@ -114,10 +121,14 @@ class GameManager:
             logging.error("Wrong State Transition from dice roll")
             assert False
 
-        if dice_1 != dice_2:
-            afterstates, forced_dice, self.are_both_dice_playable \
-                = hf.get_action_space(self.game_board, self.current_dice, current_player)
+        afterstates, \
+            forced_dice, \
+            self.are_both_dice_playable, \
+            self.combined_afterstates_and_intermediate_states, \
+            self.combined_afterstates_and_intermediate_states_remaining_dice \
+            = hf.get_action_space(self.game_board, self.current_dice, current_player)
 
+        if dice_1 != dice_2:
             if forced_dice == dice_1:
                 self.remaining_dice_moves = [dice_1]
                 logging.info('Forced to play die %s', dice_1)
@@ -184,8 +195,11 @@ class GameManager:
                         if self.current_selected_slot + local_dice_value == destination_slot:
                             if len(self.remaining_dice_moves) == 2 \
                                     and self.remaining_dice_moves[0] != self.remaining_dice_moves[1]:
-                                future_remaining_dice_move = self.remaining_dice_moves[1-i]
-                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board, self.current_selected_slot, destination_slot, 0, future_remaining_dice_move):
+                                future_remaining_dice_move = self.remaining_dice_moves[1 - i]
+                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board,
+                                                                                                  self.current_selected_slot,
+                                                                                                  destination_slot, 0,
+                                                                                                  future_remaining_dice_move):
                                     return False
                             return True
 
@@ -205,7 +219,10 @@ class GameManager:
                             if len(self.remaining_dice_moves) == 2 \
                                     and self.remaining_dice_moves[0] != self.remaining_dice_moves[1]:
                                 future_remaining_dice_move = self.remaining_dice_moves[1 - i]
-                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board, self.current_selected_slot, destination_slot, 1, future_remaining_dice_move):
+                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board,
+                                                                                                  self.current_selected_slot,
+                                                                                                  destination_slot, 1,
+                                                                                                  future_remaining_dice_move):
                                     return False
                             return True
             else:
@@ -253,9 +270,76 @@ class GameManager:
 
         return False
 
+    def is_valid_move_2(self, destination_slot):
+        # This functions returns true if the destination slot leads to a valid move, assuming the origin slot is the
+        # current_selected_slot
+        # different implementation from is_valid_move based on helper function
+
+        # if white's turn
+        if self.current_game_state == GameState.PLAYER_1_TURN:
+            current_player = 0
+        # else if black's turn
+        elif self.current_game_state == GameState.PLAYER_2_TURN:
+            current_player = 1
+        else:
+            logging.error("State Error")
+            assert False
+
+        # look at what the board would look like if the move was played
+        potential_next_board = cp.deepcopy(self.game_board)
+        is_successful_move = potential_next_board.move_piece_from_slot_to_slot(self.current_selected_slot,
+                                                                               destination_slot,
+                                                                               current_player)
+
+        if not is_successful_move:
+            return False, []
+
+        # look for this board in the combined_afterstates_and_intermediate_states list
+        board_loc_in_combined_afterstates_and_intermediate_states_list = -1
+        for i in range(len(self.combined_afterstates_and_intermediate_states)):
+            if potential_next_board == self.combined_afterstates_and_intermediate_states[i]:
+                board_loc_in_combined_afterstates_and_intermediate_states_list = i
+                break
+
+        remaining_dice = self.combined_afterstates_and_intermediate_states_remaining_dice[
+            board_loc_in_combined_afterstates_and_intermediate_states_list]
+
+        if board_loc_in_combined_afterstates_and_intermediate_states_list != -1:
+            return True, remaining_dice
+        else:
+            return False, []
+
     def remove_value_from_remaining_dice_moves(self, value_to_remove):
         # This function removes a specific dice value from the remaining_dice_moves list after it has been played
         self.remaining_dice_moves.remove(value_to_remove)
+
+        # check if game is over
+        if not self.is_game_over():
+
+            # check if player is stuck
+            is_current_player_stuck = self.is_player_stuck()
+
+            # if remaining_dice_moves is empty or if player stuck, switch turns
+            if not self.remaining_dice_moves or is_current_player_stuck:
+
+                # self.log_manager.write_move_to_log()
+
+                if is_current_player_stuck and self.remaining_dice_moves:
+                    logging.info('Player stuck! Switching turns.')
+
+                if self.current_game_state == GameState.PLAYER_1_TURN:
+                    self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
+                    # logging.info('Game State Changed: %s --> %s', GameState.PLAYER_1_TURN, GameState.PLAYER_2_DICE_ROLL)
+                elif self.current_game_state == GameState.PLAYER_2_TURN:
+                    self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
+                    # logging.info('Game State Changed: %s --> %s', GameState.PLAYER_2_TURN, GameState.PLAYER_1_DICE_ROLL)
+                else:
+                    logging.error("State Error")
+                    return False
+
+    def set_remaining_dice_moves(self, remaining_dice_moves):
+        # This function removes a specific dice value from the remaining_dice_moves list after it has been played
+        self.remaining_dice_moves = remaining_dice_moves
 
         # check if game is over
         if not self.is_game_over():
