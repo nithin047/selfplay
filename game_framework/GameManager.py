@@ -296,7 +296,11 @@ class GameManager:
 
         # look for this board in the combined_afterstates_and_intermediate_states list
         board_loc_in_combined_afterstates_and_intermediate_states_list = -1
-        for i in range(len(self.combined_afterstates_and_intermediate_states)):
+        for i in range(len(self.combined_afterstates_and_intermediate_states)-1, -1, -1):
+            # looping in reverse to take into account the corner case where a combined_afterstate and an
+            # intermediate_afterstate are the same state. In this case we want to look at the remaining dice of the
+            # intermediate_afterstate. The combined_afterstates have smaller indices than the
+            # intermediate_afterstates..
             if potential_next_board == self.combined_afterstates_and_intermediate_states[i]:
                 board_loc_in_combined_afterstates_and_intermediate_states_list = i
                 break
@@ -329,10 +333,8 @@ class GameManager:
 
                 if self.current_game_state == GameState.PLAYER_1_TURN:
                     self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
-                    # logging.info('Game State Changed: %s --> %s', GameState.PLAYER_1_TURN, GameState.PLAYER_2_DICE_ROLL)
                 elif self.current_game_state == GameState.PLAYER_2_TURN:
                     self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
-                    # logging.info('Game State Changed: %s --> %s', GameState.PLAYER_2_TURN, GameState.PLAYER_1_DICE_ROLL)
                 else:
                     logging.error("State Error")
                     return False
@@ -371,12 +373,8 @@ class GameManager:
         # figure out the player's turn and return false if we are in this player's endgame
         if self.current_game_state == GameState.PLAYER_1_TURN:
             player_id = 0
-            if self.game_board.is_white_endgame():
-                return False
         elif self.current_game_state == GameState.PLAYER_2_TURN:
             player_id = 1
-            if self.game_board.is_black_endgame():
-                return False
         else:
             logging.error("State Error")
             assert False

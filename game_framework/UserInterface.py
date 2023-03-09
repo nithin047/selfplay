@@ -527,7 +527,7 @@ class UserInterface:
             else:
                 is_move_valid, remaining_dice_list_given_move = self.game_manager.is_valid_move_2(clicked_slot)
 
-                if is_move_valid:
+                if is_move_valid and self.game_manager.current_selected_slot != clicked_slot:
                     is_piece_successfully_moved = \
                         self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
                                                                        clicked_slot,
@@ -561,7 +561,7 @@ class UserInterface:
             else:
                 is_move_valid, remaining_dice_list_given_move = self.game_manager.is_valid_move_2(clicked_slot)
 
-                if is_move_valid:
+                if is_move_valid and self.game_manager.current_selected_slot != clicked_slot:
                     is_piece_successfully_moved = \
                         self.game_manager.move_piece_from_slot_to_slot(self.game_manager.current_selected_slot,
                                                                        clicked_slot,
