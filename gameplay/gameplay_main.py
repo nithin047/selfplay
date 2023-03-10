@@ -38,7 +38,7 @@ def game_playthrough(cfg):
         if stuck_player_flag:
             continue
         # get possible action states
-        afterstates, _, _ = hf.get_action_space(game_manager.game_board, game_manager.current_dice, game_manager.current_game_state.value % 2)
+        afterstates, _, _, _ = hf.get_action_space(game_manager.game_board, game_manager.current_dice, game_manager.current_game_state.value % 2)
 
         # check if at least one move is possible
         if afterstates:
