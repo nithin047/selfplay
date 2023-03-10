@@ -89,20 +89,30 @@ def get_action_space(board, dice_values, player_id):
         # Step 2a: determine slots that contain movable pieces of player_id for dice 1 after moving first piece using
         # dice 0
         action_space_list_dice_0_then_dice_1 = []
+        is_dice_0_intermediate_state_eligible = np.zeros((len(action_space_list_dice_0), ))
         for i in range(len(action_space_list_dice_0)):
             additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_0[i],
                                                                           dice_values[1],
                                                                           player_id)
             action_space_list_dice_0_then_dice_1 += additional_afterstates
+            if additional_afterstates:
+                is_dice_0_intermediate_state_eligible[i] = 1
+            else:
+                is_dice_0_intermediate_state_eligible[i] = 0
 
         # Step 2b: determine slots that contain movable pieces of player_id for dice 0 after moving first piece using
         # dice 1
         action_space_list_dice_1_then_dice_0 = []
+        is_dice_1_intermediate_state_eligible = np.zeros((len(action_space_list_dice_1), ))
         for i in range(len(action_space_list_dice_1)):
             additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_1[i],
                                                                           dice_values[0],
                                                                           player_id)
             action_space_list_dice_1_then_dice_0 += additional_afterstates
+            if additional_afterstates:
+                is_dice_1_intermediate_state_eligible[i] = 1
+            else:
+                is_dice_1_intermediate_state_eligible[i] = 0
 
         # Step 3: combine all potential afterstates in single structure
         if not action_space_list_dice_0 and not action_space_list_dice_1:
@@ -122,12 +132,13 @@ def get_action_space(board, dice_values, player_id):
             are_both_dice_playable = True
             combined_afterstates = action_space_list_dice_0_then_dice_1 + action_space_list_dice_1_then_dice_0
 
-        # Step 4: save all intermediate states
-        if forced_dice == 0:
-            intermediate_states = action_space_list_dice_0 + action_space_list_dice_1
-            for i in range(len(action_space_list_dice_0)):
+            # Step 4: save all intermediate states
+            filtered_action_space_list_dice_0 = [action_space_list_dice_0[i] for i in range(len(action_space_list_dice_0)) if is_dice_0_intermediate_state_eligible[i]]
+            filtered_action_space_list_dice_1 = [action_space_list_dice_1[i] for i in range(len(action_space_list_dice_1)) if is_dice_1_intermediate_state_eligible[i]]
+            intermediate_states = filtered_action_space_list_dice_0 + filtered_action_space_list_dice_1
+            for i in range(len(filtered_action_space_list_dice_0)):
                 remaining_dice.append([dice_values[1]])
-            for i in range(len(action_space_list_dice_1)):
+            for i in range(len(filtered_action_space_list_dice_1)):
                 remaining_dice.append([dice_values[0]])
 
     # else, if the dice have the same value
