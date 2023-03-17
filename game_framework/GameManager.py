@@ -359,10 +359,8 @@ class GameManager:
 
                 if self.current_game_state == GameState.PLAYER_1_TURN:
                     self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
-                    # logging.info('Game State Changed: %s --> %s', GameState.PLAYER_1_TURN, GameState.PLAYER_2_DICE_ROLL)
                 elif self.current_game_state == GameState.PLAYER_2_TURN:
                     self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
-                    # logging.info('Game State Changed: %s --> %s', GameState.PLAYER_2_TURN, GameState.PLAYER_1_DICE_ROLL)
                 else:
                     logging.error("State Error")
                     return False
