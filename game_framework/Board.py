@@ -109,8 +109,8 @@ class Board:
 
     def is_game_over_player_1(self):
         # This function returns 1 or 2 if player 1 (white) won the game by 1 point or 2 points
-        if np.all(self.board_state[0, :] == 0):
-            if np.sum(self.board_state[1, :]) == self.n_pieces:
+        if np.all(self.board_state[0, :] == 0) or self.board_state[2, self.n_slots-1] == 1:
+            if np.sum(self.board_state[1, :]) == self.n_pieces or self.board_state[2, self.n_slots-1] == 1:
                 return 2
             else:
                 return 1
@@ -118,8 +118,8 @@ class Board:
 
     def is_game_over_player_2(self):
         # This function returns 1 or 2 if player 2 (black) won the game by 1 point or 2 points
-        if np.all(self.board_state[1, :] == 0):
-            if np.sum(self.board_state[0, :]) == self.n_pieces:
+        if np.all(self.board_state[1, :] == 0) or self.board_state[2, 0] == -1:
+            if np.sum(self.board_state[0, :]) == self.n_pieces or self.board_state[2, 0] == -1:
                 return 2
             else:
                 return 1
