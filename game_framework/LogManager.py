@@ -43,6 +43,8 @@ class LogManager:
                         + str(self.dice_roll[1]) \
                         + ": "
 
+        self.simplify_logs()
+
         for i in range(len(self.source_list)):
             logged_string += str(self.source_list[i]) + "/" + str(self.destination_list[i]) + " "
 
@@ -54,6 +56,30 @@ class LogManager:
         self.destination_list = []
         self.dice_roll = []
         self.player_id = -1
+
+    def simplify_logs(self):
+        for i in range(len(self.source_list)):
+            for j in range(i+1, len(self.source_list)):
+                if self.destination_list[i] == self.source_list[j]:
+                    self.destination_list[i] = self.destination_list[j]
+                    self.source_list.pop(j)
+                    self.destination_list.pop(j)
+                    if self.source_list[i] == self.destination_list[i]:
+                        self.source_list.pop(i)
+                        self.destination_list.pop(i)
+                    self.simplify_logs()
+                    return
+
+                elif self.source_list[i] == self.destination_list[j]:
+                    self.source_list[i] = self.source_list[j]
+                    self.source_list.pop(j)
+                    self.destination_list.pop(j)
+                    if self.source_list[i] == self.destination_list[i]:
+                        self.source_list.pop(i)
+                        self.destination_list.pop(i)
+                    self.simplify_logs()
+                    return
+
 
     def mark_game_over(self, player, points):
         logged_string = "*** "

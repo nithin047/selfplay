@@ -64,6 +64,7 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
 
 def get_action_space(board, dice_values, player_id):
     # This function returns the complete set of possible afterstates after moving pieces from both dice
+    board_copy = cp.deepcopy(board)
 
     # forced_dice takes a non-zero value whenever player is forced to play only one of the two dice, and needs to
     # play the largest of the two dice values. forced_dice takes the value of the largest of the two values.
@@ -71,6 +72,11 @@ def get_action_space(board, dice_values, player_id):
 
     # are_both_dice_playable is true when the player has at least one legal move where both dice are used
     are_both_dice_playable = False
+
+    # record the remaining dice list
+    remaining_dice = []
+
+    intermediate_states = []
 
     # start with the case where both dice have different values
     if dice_values[0] != dice_values[1]:
@@ -83,20 +89,30 @@ def get_action_space(board, dice_values, player_id):
         # Step 2a: determine slots that contain movable pieces of player_id for dice 1 after moving first piece using
         # dice 0
         action_space_list_dice_0_then_dice_1 = []
+        is_dice_0_intermediate_state_eligible = np.zeros((len(action_space_list_dice_0), ))
         for i in range(len(action_space_list_dice_0)):
             additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_0[i],
                                                                           dice_values[1],
                                                                           player_id)
             action_space_list_dice_0_then_dice_1 += additional_afterstates
+            if additional_afterstates:
+                is_dice_0_intermediate_state_eligible[i] = 1
+            else:
+                is_dice_0_intermediate_state_eligible[i] = 0
 
         # Step 2b: determine slots that contain movable pieces of player_id for dice 0 after moving first piece using
         # dice 1
         action_space_list_dice_1_then_dice_0 = []
+        is_dice_1_intermediate_state_eligible = np.zeros((len(action_space_list_dice_1), ))
         for i in range(len(action_space_list_dice_1)):
             additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_1[i],
                                                                           dice_values[0],
                                                                           player_id)
             action_space_list_dice_1_then_dice_0 += additional_afterstates
+            if additional_afterstates:
+                is_dice_1_intermediate_state_eligible[i] = 1
+            else:
+                is_dice_1_intermediate_state_eligible[i] = 0
 
         # Step 3: combine all potential afterstates in single structure
         if not action_space_list_dice_0 and not action_space_list_dice_1:
@@ -114,7 +130,16 @@ def get_action_space(board, dice_values, player_id):
                 combined_afterstates = action_space_list_dice_0 + action_space_list_dice_1
         else:
             are_both_dice_playable = True
-            combined_afterstates = action_space_list_dice_0_then_dice_1 + action_space_list_dice_0_then_dice_1
+            combined_afterstates = action_space_list_dice_0_then_dice_1 + action_space_list_dice_1_then_dice_0
+
+            # Step 4: save all intermediate states
+            filtered_action_space_list_dice_0 = [action_space_list_dice_0[i] for i in range(len(action_space_list_dice_0)) if is_dice_0_intermediate_state_eligible[i]]
+            filtered_action_space_list_dice_1 = [action_space_list_dice_1[i] for i in range(len(action_space_list_dice_1)) if is_dice_1_intermediate_state_eligible[i]]
+            intermediate_states = filtered_action_space_list_dice_0 + filtered_action_space_list_dice_1
+            for i in range(len(filtered_action_space_list_dice_0)):
+                remaining_dice.append([dice_values[1]])
+            for i in range(len(filtered_action_space_list_dice_1)):
+                remaining_dice.append([dice_values[0]])
 
     # else, if the dice have the same value
     else:
@@ -157,10 +182,33 @@ def get_action_space(board, dice_values, player_id):
         else:
             combined_afterstates = action_space_list_move_4
 
-    # Step 4: remove repeated entries: convert to set then back to list. Uniqueness guaranteed from Board hash function
-    combined_afterstates = list(set(combined_afterstates))
+        # Step 4: save all intermediate states
+        intermediate_states = action_space_list_move_1 + \
+                              action_space_list_move_2 + \
+                              action_space_list_move_3
 
-    return combined_afterstates, forced_dice, are_both_dice_playable
+        for i in range(len(action_space_list_move_1)):
+            remaining_dice.append([dice_values[0], dice_values[0], dice_values[0]])
+        for i in range(len(action_space_list_move_2)):
+            remaining_dice.append([dice_values[0], dice_values[0]])
+        for i in range(len(action_space_list_move_3)):
+            remaining_dice.append([dice_values[0]])
+
+    # Step 5: remove repeated entries: convert to set then back to list. Uniqueness guaranteed from Board hash function
+    combined_afterstates = list(set(combined_afterstates))
+    combined_afterstates_and_intermediate_states = combined_afterstates + intermediate_states + [board_copy]
+
+    remaining_dice_combined_afterstates = []
+    for i in range(len(combined_afterstates)):
+        remaining_dice_combined_afterstates.append([])
+
+    remaining_dice = remaining_dice_combined_afterstates + remaining_dice + [dice_values]
+
+    return combined_afterstates, \
+           forced_dice, \
+           are_both_dice_playable, \
+           combined_afterstates_and_intermediate_states, \
+           remaining_dice
 
 
 def would_move_get_player_stuck(board, origin, destination, player_id, remaining_dice_move):
@@ -185,6 +233,3 @@ def would_move_get_player_stuck(board, origin, destination, player_id, remaining
         return False
     else:
         return True
-
-
-
