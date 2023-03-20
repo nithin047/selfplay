@@ -52,8 +52,8 @@ if __name__ == '__main__':
         enable_logs = bool(main_cfg['enable_logs'])
 
         log_file_path = "Logs/20230310/game_log_20230310_002406.txt"
-        my_game_manager = GameManager(None, None, None, enable_logs)
-        # my_game_manager = GameManager(my_board, GameState.PLAYER_2_TURN, dice_values, False)
+        # my_game_manager = GameManager(None, None, None, enable_logs)
+        my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values, False)
 
         # Instantiate GUI object
         my_gameplay_gui = UserInterfaceGameplay(my_game_manager)
