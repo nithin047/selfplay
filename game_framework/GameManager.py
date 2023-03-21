@@ -32,8 +32,8 @@ class GameManager:
         # contains the slot id that is currently selected by the player
         self.current_selected_slot = -1
 
-        # indicates whether both dice are playable (and need to be played)
-        self.are_both_dice_playable = True
+        # contains all valid afterstates after each dice roll
+        self.afterstates = []
 
         # contains all valid afterstates and intermediate states after each dice roll
         self.combined_afterstates_and_intermediate_states = []
@@ -121,9 +121,8 @@ class GameManager:
             logging.error("Wrong State Transition from dice roll")
             assert False
 
-        afterstates, \
+        self.afterstates, \
             forced_dice, \
-            self.are_both_dice_playable, \
             self.combined_afterstates_and_intermediate_states, \
             self.combined_afterstates_and_intermediate_states_remaining_dice \
             = hf.get_action_space(self.game_board, self.current_dice, current_player)
@@ -151,8 +150,6 @@ class GameManager:
             # if white is stuck, end turn
             if self.is_player_stuck():
                 logging.info('Player stuck! Switching turns.')
-                # self.log_manager.set_player(1)
-                # self.log_manager.write_move_to_log()
                 self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
                 logging.info('Game State Changed: %s --> %s', GameState.PLAYER_1_TURN, GameState.PLAYER_2_DICE_ROLL)
                 return True
@@ -166,8 +163,6 @@ class GameManager:
             # if black is stuck, end turn
             if self.is_player_stuck():
                 logging.info('Player stuck! Switching turns.')
-                # self.log_manager.set_player(1)
-                # self.log_manager.write_move_to_log()
                 self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
                 logging.info('Game State Changed: %s --> %s', GameState.PLAYER_2_TURN, GameState.PLAYER_1_DICE_ROLL)
                 return True
@@ -177,103 +172,6 @@ class GameManager:
     def is_valid_move(self, destination_slot):
         # This functions returns true if the destination slot leads to a valid move, assuming the origin slot is the
         # current_selected_slot
-
-        # if regular move
-        if destination_slot >= 0:
-            # if white's turn
-            if self.current_game_state == GameState.PLAYER_1_TURN:
-
-                # invalid move if land on occupied of pinned slot
-                if self.game_board.board_state[1, destination_slot] > 1 \
-                        or self.game_board.board_state[2, destination_slot] == -1:
-                    return False
-
-                # else it's a valid move if one of the dice corresponds to the desired jump
-                else:
-                    for i in range(len(self.remaining_dice_moves)):
-                        local_dice_value = self.remaining_dice_moves[i]
-                        if self.current_selected_slot + local_dice_value == destination_slot:
-                            if len(self.remaining_dice_moves) == 2 \
-                                    and self.remaining_dice_moves[0] != self.remaining_dice_moves[1]:
-                                future_remaining_dice_move = self.remaining_dice_moves[1 - i]
-                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board,
-                                                                                                  self.current_selected_slot,
-                                                                                                  destination_slot, 0,
-                                                                                                  future_remaining_dice_move):
-                                    return False
-                            return True
-
-            # else if black's turn
-            elif self.current_game_state == GameState.PLAYER_2_TURN:
-
-                # invalid move if land on occupied of pinned slot
-                if self.game_board.board_state[0, destination_slot] > 1 \
-                        or self.game_board.board_state[2, destination_slot] == 1:
-                    return False
-
-                # else it's a valid move if one of the dice corresponds to the desired jump
-                else:
-                    for i in range(len(self.remaining_dice_moves)):
-                        local_dice_value = self.remaining_dice_moves[i]
-                        if self.current_selected_slot - local_dice_value == destination_slot:
-                            if len(self.remaining_dice_moves) == 2 \
-                                    and self.remaining_dice_moves[0] != self.remaining_dice_moves[1]:
-                                future_remaining_dice_move = self.remaining_dice_moves[1 - i]
-                                if self.are_both_dice_playable and hf.would_move_get_player_stuck(self.game_board,
-                                                                                                  self.current_selected_slot,
-                                                                                                  destination_slot, 1,
-                                                                                                  future_remaining_dice_move):
-                                    return False
-                            return True
-            else:
-                logging.error("State Error")
-                assert False
-
-        # else if endgame
-        elif destination_slot == -1:
-            # if white's turn
-            if self.current_game_state == GameState.PLAYER_1_TURN and self.game_board.is_white_endgame():
-                # loop over remaining dice moves
-                for i in range(len(self.remaining_dice_moves)):
-                    local_dice_value = self.remaining_dice_moves[i]
-
-                    # valid move if the jump corresponds exactly to the dice value
-                    if local_dice_value == self.game_board.n_slots - self.current_selected_slot:
-                        return True
-                    # valid move if the dice value is larger than the jump and no further pieces are still there
-                    elif local_dice_value > self.game_board.n_slots - self.current_selected_slot \
-                            and np.all(self.game_board.board_state[0,
-                                       round(self.game_board.n_slots * 0.75):self.current_selected_slot] == 0):
-                        return True
-            # else if black's turn
-            elif self.current_game_state == GameState.PLAYER_2_TURN and self.game_board.is_black_endgame():
-                # loop over remaining dice moves
-                for i in range(len(self.remaining_dice_moves)):
-                    local_dice_value = self.remaining_dice_moves[i]
-
-                    # valid move if the jump corresponds exactly to the dice value
-                    if local_dice_value == self.current_selected_slot + 1:
-                        return True
-                    # valid move if the dice value is larger than the jump and no further pieces are still there
-                    elif local_dice_value > self.current_selected_slot + 1 \
-                            and np.all(self.game_board.board_state[1,
-                                       self.current_selected_slot + 1:round(self.game_board.n_slots * 0.25)] == 0):
-                        return True
-
-            else:
-                logging.error("State Error")
-                assert False
-
-        else:
-            logging.error("Destination Error")
-            assert False
-
-        return False
-
-    def is_valid_move_2(self, destination_slot):
-        # This functions returns true if the destination slot leads to a valid move, assuming the origin slot is the
-        # current_selected_slot
-        # different implementation from is_valid_move based on helper function
 
         # if white's turn
         if self.current_game_state == GameState.PLAYER_1_TURN:
@@ -313,32 +211,6 @@ class GameManager:
         else:
             return False, []
 
-    def remove_value_from_remaining_dice_moves(self, value_to_remove):
-        # This function removes a specific dice value from the remaining_dice_moves list after it has been played
-        self.remaining_dice_moves.remove(value_to_remove)
-
-        # check if game is over
-        if not self.is_game_over():
-
-            # check if player is stuck
-            is_current_player_stuck = self.is_player_stuck()
-
-            # if remaining_dice_moves is empty or if player stuck, switch turns
-            if not self.remaining_dice_moves or is_current_player_stuck:
-
-                # self.log_manager.write_move_to_log()
-
-                if is_current_player_stuck and self.remaining_dice_moves:
-                    logging.info('Player stuck! Switching turns.')
-
-                if self.current_game_state == GameState.PLAYER_1_TURN:
-                    self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
-                elif self.current_game_state == GameState.PLAYER_2_TURN:
-                    self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
-                else:
-                    logging.error("State Error")
-                    return False
-
     def set_remaining_dice_moves(self, remaining_dice_moves):
         # This function removes a specific dice value from the remaining_dice_moves list after it has been played
         self.remaining_dice_moves = remaining_dice_moves
@@ -351,8 +223,6 @@ class GameManager:
 
             # if remaining_dice_moves is empty or if player stuck, switch turns
             if not self.remaining_dice_moves or is_current_player_stuck:
-
-                # self.log_manager.write_move_to_log()
 
                 if is_current_player_stuck and self.remaining_dice_moves:
                     logging.info('Player stuck! Switching turns.')
@@ -391,10 +261,32 @@ class GameManager:
 
     def move_piece_from_slot_to_slot(self, origin, destination, player_id):
         is_successful_move = self.game_board.move_piece_from_slot_to_slot(origin, destination, player_id)
+        self.current_selected_slot = -1
+
         if is_successful_move:
             self.log_manager.add_move(origin, destination)
 
+            # check if game is over
+            if not self.is_game_over() and self.is_current_board_state_afterstate():
+                if self.current_game_state == GameState.PLAYER_1_TURN:
+                    self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
+                elif self.current_game_state == GameState.PLAYER_2_TURN:
+                    self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
+                else:
+                    logging.error("State Error")
+                    return False
+
         return is_successful_move
+
+    def is_current_board_state_afterstate(self):
+        if not self.afterstates:
+            return True
+
+        for i in range(len(self.afterstates)):
+            if self.game_board == self.afterstates[i]:
+                return True
+
+        return False
 
     def is_game_over(self):
 

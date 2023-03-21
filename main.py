@@ -33,8 +33,8 @@ if __name__ == '__main__':
         #                     [3, 2, 1, 7, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         #                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-        initial_position = [[15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15],
+        initial_position = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5],
+                            [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
         # initial dice state
@@ -52,8 +52,8 @@ if __name__ == '__main__':
         enable_logs = bool(main_cfg['enable_logs'])
 
         log_file_path = "Logs/20230310/game_log_20230310_002406.txt"
-        # my_game_manager = GameManager(None, None, None, enable_logs)
-        my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values, False)
+        my_game_manager = GameManager(None, None, None, enable_logs)
+        # my_game_manager = GameManager(my_board, GameState.PLAYER_1_TURN, dice_values, False)
 
         # Instantiate GUI object
         my_gameplay_gui = UserInterfaceGameplay(my_game_manager)

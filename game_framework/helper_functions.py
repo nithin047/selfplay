@@ -53,7 +53,6 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
         # copy board object
         potential_next_board_state = cp.deepcopy(board)
 
-        # TODO: This function call needs some more testing for the case where player_id is in endgame
         is_move_success = potential_next_board_state.move_piece_from_slot_to_slot(i, potential_next_slot, player_id)
         if is_move_success:
             # add afterstate to list
@@ -69,9 +68,6 @@ def get_action_space(board, dice_values, player_id):
     # forced_dice takes a non-zero value whenever player is forced to play only one of the two dice, and needs to
     # play the largest of the two dice values. forced_dice takes the value of the largest of the two values.
     forced_dice = 0
-
-    # are_both_dice_playable is true when the player has at least one legal move where both dice are used
-    are_both_dice_playable = False
 
     # record the remaining dice list
     remaining_dice = []
@@ -129,7 +125,6 @@ def get_action_space(board, dice_values, player_id):
             else:
                 combined_afterstates = action_space_list_dice_0 + action_space_list_dice_1
         else:
-            are_both_dice_playable = True
             combined_afterstates = action_space_list_dice_0_then_dice_1 + action_space_list_dice_1_then_dice_0
 
             # Step 4: save all intermediate states
@@ -206,7 +201,6 @@ def get_action_space(board, dice_values, player_id):
 
     return combined_afterstates, \
            forced_dice, \
-           are_both_dice_playable, \
            combined_afterstates_and_intermediate_states, \
            remaining_dice
 
