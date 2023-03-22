@@ -58,7 +58,7 @@ class GameManager:
 
         if dice is None:
             self.current_dice = [6, 6]
-            self.remaining_dice_moves = []
+            # self.remaining_dice_moves = []
         else:
             if self.current_game_state == GameState.PLAYER_1_TURN:
                 self.current_game_state = GameState.PLAYER_1_DICE_ROLL
@@ -122,33 +122,16 @@ class GameManager:
             assert False
 
         self.afterstates, \
-            forced_dice, \
             self.combined_afterstates_and_intermediate_states, \
             self.combined_afterstates_and_intermediate_states_remaining_dice \
             = hf.get_action_space(self.game_board, self.current_dice, current_player)
-
-        if dice_1 != dice_2:
-            if forced_dice == dice_1:
-                self.remaining_dice_moves = [dice_1]
-                logging.info('Forced to play die %s', dice_1)
-            elif forced_dice == dice_2:
-                self.remaining_dice_moves = [dice_2]
-                logging.info('Forced to play die %s', dice_2)
-            elif forced_dice == 0:
-                self.remaining_dice_moves = [dice_1, dice_2]
-            else:
-                logging.error("Dice roll error")
-                assert False
-
-        else:
-            self.remaining_dice_moves = [dice_1, dice_1, dice_1, dice_1]
 
         # if white's turn
         if current_player == 0:
             self.transition_to_state(GameState.PLAYER_1_TURN)
 
             # if white is stuck, end turn
-            if self.is_player_stuck():
+            if self.is_current_board_state_afterstate():
                 logging.info('Player stuck! Switching turns.')
                 self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
                 logging.info('Game State Changed: %s --> %s', GameState.PLAYER_1_TURN, GameState.PLAYER_2_DICE_ROLL)
@@ -161,7 +144,7 @@ class GameManager:
             self.transition_to_state(GameState.PLAYER_2_TURN)
 
             # if black is stuck, end turn
-            if self.is_player_stuck():
+            if self.is_current_board_state_afterstate():
                 logging.info('Player stuck! Switching turns.')
                 self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
                 logging.info('Game State Changed: %s --> %s', GameState.PLAYER_2_TURN, GameState.PLAYER_1_DICE_ROLL)
@@ -211,54 +194,6 @@ class GameManager:
         else:
             return False, []
 
-    def set_remaining_dice_moves(self, remaining_dice_moves):
-        # This function removes a specific dice value from the remaining_dice_moves list after it has been played
-        self.remaining_dice_moves = remaining_dice_moves
-
-        # check if game is over
-        if not self.is_game_over():
-
-            # check if player is stuck
-            is_current_player_stuck = self.is_player_stuck()
-
-            # if remaining_dice_moves is empty or if player stuck, switch turns
-            if not self.remaining_dice_moves or is_current_player_stuck:
-
-                if is_current_player_stuck and self.remaining_dice_moves:
-                    logging.info('Player stuck! Switching turns.')
-
-                if self.current_game_state == GameState.PLAYER_1_TURN:
-                    self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
-                elif self.current_game_state == GameState.PLAYER_2_TURN:
-                    self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
-                else:
-                    logging.error("State Error")
-                    return False
-
-    def is_player_stuck(self):
-        # This function checks whether the player is stuck
-
-        # figure out the player's turn and return false if we are in this player's endgame
-        if self.current_game_state == GameState.PLAYER_1_TURN:
-            player_id = 0
-        elif self.current_game_state == GameState.PLAYER_2_TURN:
-            player_id = 1
-        else:
-            logging.error("State Error")
-            assert False
-
-        # run the afterstate function and check if empty. Empty means stuck.
-        for i in range(len(self.remaining_dice_moves)):
-            action_space = hf.get_possible_afterstates_single_dice(self.game_board,
-                                                                   self.remaining_dice_moves[i],
-                                                                   player_id)
-
-            # if action_space is not empty, player is not stuck
-            if action_space:
-                return False
-
-        return True
-
     def move_piece_from_slot_to_slot(self, origin, destination, player_id):
         is_successful_move = self.game_board.move_piece_from_slot_to_slot(origin, destination, player_id)
         self.current_selected_slot = -1
@@ -280,11 +215,19 @@ class GameManager:
 
     def is_current_board_state_afterstate(self):
         if not self.afterstates:
+            # if no move available
+            return True
+        elif len(self.afterstates) == 1 and self.game_board == self.afterstates[0]:
+            # if forced move
             return True
 
-        for i in range(len(self.afterstates)):
-            if self.game_board == self.afterstates[i]:
-                return True
+        for i in range(len(self.combined_afterstates_and_intermediate_states)-1, -1, -1):
+            if self.game_board == self.combined_afterstates_and_intermediate_states[i]:
+                # check whether this is not also an intermediate state
+                if not self.combined_afterstates_and_intermediate_states_remaining_dice[i]:
+                    return True
+                else:
+                    return False
 
         return False
 

@@ -65,13 +65,10 @@ def get_action_space(board, dice_values, player_id):
     # This function returns the complete set of possible afterstates after moving pieces from both dice
     board_copy = cp.deepcopy(board)
 
-    # forced_dice takes a non-zero value whenever player is forced to play only one of the two dice, and needs to
-    # play the largest of the two dice values. forced_dice takes the value of the largest of the two values.
-    forced_dice = 0
-
     # record the remaining dice list
     remaining_dice = []
 
+    # record the intermediate states list
     intermediate_states = []
 
     # start with the case where both dice have different values
@@ -118,10 +115,8 @@ def get_action_space(board, dice_values, player_id):
                 # if we can only play one die, but not both, force to play the largest value
                 if dice_values[0] > dice_values[1]:
                     combined_afterstates = action_space_list_dice_0
-                    forced_dice = dice_values[0]
                 else:
                     combined_afterstates = action_space_list_dice_1
-                    forced_dice = dice_values[1]
             else:
                 combined_afterstates = action_space_list_dice_0 + action_space_list_dice_1
         else:
@@ -200,7 +195,6 @@ def get_action_space(board, dice_values, player_id):
     remaining_dice = remaining_dice_combined_afterstates + remaining_dice + [dice_values]
 
     return combined_afterstates, \
-           forced_dice, \
            combined_afterstates_and_intermediate_states, \
            remaining_dice
 
