@@ -25,6 +25,10 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
     # This function generates all possible partial afterstates, i.e., afterstates after playing a single dice.
     afterstates_list = []
 
+    # corresponding_moves_list contains a lost of source-destination pairs corresponding to the afterstate at the same
+    # index
+    corresponding_moves_list = []
+
     # loop over all slots on board
     for i in range(board.n_slots):
 
@@ -57,8 +61,198 @@ def get_possible_afterstates_single_dice(board, dice_value, player_id):
         if is_move_success:
             # add afterstate to list
             afterstates_list.append(potential_next_board_state)
+            corresponding_moves_list.append([i, potential_next_slot])
 
-    return afterstates_list
+    return afterstates_list, corresponding_moves_list
+
+
+def get_action_space2(board, dice_values, player_id):
+    # This function returns the complete set of possible afterstates after moving pieces from both dice
+    board_copy = cp.deepcopy(board)
+
+    # record the remaining dice list
+    remaining_dice = []
+
+    # record the intermediate states list
+    intermediate_states = []
+
+    # afterstate source-destination pair list
+    afterstate_origin_destination_pair_list = []
+
+    # start with the case where both dice have different values
+    if dice_values[0] != dice_values[1]:
+        # Step 1a: determine slots that contain movable pieces of player_id for dice 0
+        action_space_list_dice_0, corresponding_moves_list_dice_0 = get_possible_afterstates_single_dice(board, dice_values[0], player_id)
+
+        # Step 1b: determine slots that contain movable pieces of player_id for dice 1
+        action_space_list_dice_1, corresponding_moves_list_dice_1 = get_possible_afterstates_single_dice(board, dice_values[1], player_id)
+
+        # Step 2a: determine slots that contain movable pieces of player_id for dice 1 after moving first piece using
+        # dice 0
+        action_space_list_dice_0_then_dice_1 = []
+        afterstate_origin_destination_pair_list_dice_0_then_dice_1 = []
+        is_dice_0_intermediate_state_eligible = np.zeros((len(action_space_list_dice_0), ))
+        for i in range(len(action_space_list_dice_0)):
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_0[i],
+                                                                          dice_values[1],
+                                                                          player_id)
+            action_space_list_dice_0_then_dice_1 += additional_afterstates
+
+            for j in range(len(corresponding_moves_list_additional_afterstates)):
+                previous_state_destination_pair = [cp.deepcopy(corresponding_moves_list_dice_0)[i], corresponding_moves_list_additional_afterstates[j]]
+                afterstate_origin_destination_pair_list_dice_0_then_dice_1 += [previous_state_destination_pair]
+
+            if additional_afterstates:
+                is_dice_0_intermediate_state_eligible[i] = 1
+            else:
+                is_dice_0_intermediate_state_eligible[i] = 0
+
+        # Step 2b: determine slots that contain movable pieces of player_id for dice 0 after moving first piece using
+        # dice 1
+        action_space_list_dice_1_then_dice_0 = []
+        afterstate_origin_destination_pair_list_dice_1_then_dice_0 = []
+        is_dice_1_intermediate_state_eligible = np.zeros((len(action_space_list_dice_1), ))
+        for i in range(len(action_space_list_dice_1)):
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_1[i],
+                                                                          dice_values[0],
+                                                                          player_id)
+            action_space_list_dice_1_then_dice_0 += additional_afterstates
+
+            for j in range(len(corresponding_moves_list_additional_afterstates)):
+                previous_state_destination_pair = [cp.deepcopy(corresponding_moves_list_dice_1)[i], corresponding_moves_list_additional_afterstates[j]]
+                afterstate_origin_destination_pair_list_dice_1_then_dice_0 += [previous_state_destination_pair]
+
+            if additional_afterstates:
+                is_dice_1_intermediate_state_eligible[i] = 1
+            else:
+                is_dice_1_intermediate_state_eligible[i] = 0
+
+        # Step 3: combine all potential afterstates in single structure
+        if not action_space_list_dice_0 and not action_space_list_dice_1:
+            combined_afterstates = []
+            afterstate_origin_destination_pair_list = []
+        elif not action_space_list_dice_0_then_dice_1 and not action_space_list_dice_1_then_dice_0:
+            if action_space_list_dice_0 and action_space_list_dice_1:
+                # if we can only play one die, but not both, force to play the largest value
+                if dice_values[0] > dice_values[1]:
+                    combined_afterstates = action_space_list_dice_0
+                    afterstate_origin_destination_pair_list = corresponding_moves_list_dice_0
+                else:
+                    combined_afterstates = action_space_list_dice_1
+                    afterstate_origin_destination_pair_list = corresponding_moves_list_dice_1
+            else:
+                combined_afterstates = action_space_list_dice_0 + action_space_list_dice_1
+                afterstate_origin_destination_pair_list = corresponding_moves_list_dice_0 + corresponding_moves_list_dice_1
+        else:
+            combined_afterstates = action_space_list_dice_0_then_dice_1 + action_space_list_dice_1_then_dice_0
+            afterstate_origin_destination_pair_list = afterstate_origin_destination_pair_list_dice_0_then_dice_1 + afterstate_origin_destination_pair_list_dice_1_then_dice_0
+
+            # Step 4: save all intermediate states
+            filtered_action_space_list_dice_0 = [action_space_list_dice_0[i] for i in range(len(action_space_list_dice_0)) if is_dice_0_intermediate_state_eligible[i]]
+            filtered_action_space_list_dice_1 = [action_space_list_dice_1[i] for i in range(len(action_space_list_dice_1)) if is_dice_1_intermediate_state_eligible[i]]
+            intermediate_states = filtered_action_space_list_dice_0 + filtered_action_space_list_dice_1
+            for i in range(len(filtered_action_space_list_dice_0)):
+                remaining_dice.append([dice_values[1]])
+            for i in range(len(filtered_action_space_list_dice_1)):
+                remaining_dice.append([dice_values[0]])
+
+    # else, if the dice have the same value
+    else:
+        # Step 1: determine slots that contain movable pieces of player_id for first move
+        action_space_list_move_1, afterstate_origin_destination_pair_list_move_1 = get_possible_afterstates_single_dice(board, dice_values[0], player_id)
+
+        # Step 2a: determine slots that contain movable pieces of player_id for second move
+        action_space_list_move_2 = []
+        afterstate_origin_destination_pair_list_move_2 = []
+        for i in range(len(action_space_list_move_1)):
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_1[i],
+                                                                          dice_values[0],
+                                                                          player_id)
+            action_space_list_move_2 += additional_afterstates
+
+            for j in range(len(corresponding_moves_list_additional_afterstates)):
+                previous_state_destination_pair = [cp.deepcopy(afterstate_origin_destination_pair_list_move_1)[i], corresponding_moves_list_additional_afterstates[j]]
+                afterstate_origin_destination_pair_list_move_2 += [previous_state_destination_pair]
+
+        # Step 2b: determine slots that contain movable pieces of player_id for third move
+        action_space_list_move_3 = []
+        afterstate_origin_destination_pair_list_move_3 = []
+        for i in range(len(action_space_list_move_2)):
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_2[i],
+                                                                          dice_values[0],
+                                                                          player_id)
+            action_space_list_move_3 += additional_afterstates
+
+            for j in range(len(corresponding_moves_list_additional_afterstates)):
+                previous_state_destination_pair = cp.deepcopy(afterstate_origin_destination_pair_list_move_2)[i]
+                previous_state_destination_pair.append(corresponding_moves_list_additional_afterstates[j])
+                afterstate_origin_destination_pair_list_move_3 += [previous_state_destination_pair]
+
+        # Step 2c: determine slots that contain movable pieces of player_id for fourth move
+        action_space_list_move_4 = []
+        afterstate_origin_destination_pair_list_move_4 = []
+        for i in range(len(action_space_list_move_3)):
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_3[i],
+                                                                          dice_values[0],
+                                                                          player_id)
+            action_space_list_move_4 += additional_afterstates
+
+            for j in range(len(corresponding_moves_list_additional_afterstates)):
+                previous_state_destination_pair = cp.deepcopy(afterstate_origin_destination_pair_list_move_3)[i]
+                previous_state_destination_pair.append(corresponding_moves_list_additional_afterstates[j])
+                afterstate_origin_destination_pair_list_move_4 += [previous_state_destination_pair]
+
+        # Step 3: combine all potential afterstates in single structure
+        if not action_space_list_move_1:
+            combined_afterstates = []
+            afterstate_origin_destination_pair_list = []
+        elif not action_space_list_move_2:
+            combined_afterstates = action_space_list_move_1
+            afterstate_origin_destination_pair_list = afterstate_origin_destination_pair_list_move_1
+        elif not action_space_list_move_3:
+            combined_afterstates = action_space_list_move_2
+            afterstate_origin_destination_pair_list = afterstate_origin_destination_pair_list_move_2
+        elif not action_space_list_move_4:
+            combined_afterstates = action_space_list_move_3
+            afterstate_origin_destination_pair_list = afterstate_origin_destination_pair_list_move_3
+        else:
+            combined_afterstates = action_space_list_move_4
+            afterstate_origin_destination_pair_list = afterstate_origin_destination_pair_list_move_4
+
+        # Step 4: save all intermediate states
+        intermediate_states = action_space_list_move_1 + \
+                              action_space_list_move_2 + \
+                              action_space_list_move_3
+
+        for i in range(len(action_space_list_move_1)):
+            remaining_dice.append([dice_values[0], dice_values[0], dice_values[0]])
+        for i in range(len(action_space_list_move_2)):
+            remaining_dice.append([dice_values[0], dice_values[0]])
+        for i in range(len(action_space_list_move_3)):
+            remaining_dice.append([dice_values[0]])
+
+    # Step 5: remove repeated entries: convert to set then back to list. Uniqueness guaranteed from Board hash function
+    combined_afterstates_copy = cp.deepcopy(combined_afterstates)
+    combined_afterstates = list(set(combined_afterstates))
+    combined_afterstates_and_intermediate_states = combined_afterstates + intermediate_states + [board_copy]
+
+    afterstate_origin_destination_pair_list_simplified = [[]] * len(combined_afterstates)
+    for i in range(len(combined_afterstates)):
+        for j in range(len(combined_afterstates_copy)):
+            if combined_afterstates[i] == combined_afterstates_copy[j]:
+                afterstate_origin_destination_pair_list_simplified[i] = afterstate_origin_destination_pair_list[j]
+                break
+
+    remaining_dice_combined_afterstates = []
+    for i in range(len(combined_afterstates)):
+        remaining_dice_combined_afterstates.append([])
+
+    remaining_dice = remaining_dice_combined_afterstates + remaining_dice + [dice_values]
+
+    return combined_afterstates, \
+           afterstate_origin_destination_pair_list_simplified, \
+           combined_afterstates_and_intermediate_states, \
+           remaining_dice
 
 
 def get_action_space(board, dice_values, player_id):
@@ -74,20 +268,21 @@ def get_action_space(board, dice_values, player_id):
     # start with the case where both dice have different values
     if dice_values[0] != dice_values[1]:
         # Step 1a: determine slots that contain movable pieces of player_id for dice 0
-        action_space_list_dice_0 = get_possible_afterstates_single_dice(board, dice_values[0], player_id)
+        action_space_list_dice_0, corresponding_moves_list_dice_0 = get_possible_afterstates_single_dice(board, dice_values[0], player_id)
 
         # Step 1b: determine slots that contain movable pieces of player_id for dice 1
-        action_space_list_dice_1 = get_possible_afterstates_single_dice(board, dice_values[1], player_id)
+        action_space_list_dice_1, corresponding_moves_list_dice_1 = get_possible_afterstates_single_dice(board, dice_values[1], player_id)
 
         # Step 2a: determine slots that contain movable pieces of player_id for dice 1 after moving first piece using
         # dice 0
         action_space_list_dice_0_then_dice_1 = []
         is_dice_0_intermediate_state_eligible = np.zeros((len(action_space_list_dice_0), ))
         for i in range(len(action_space_list_dice_0)):
-            additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_0[i],
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_0[i],
                                                                           dice_values[1],
                                                                           player_id)
             action_space_list_dice_0_then_dice_1 += additional_afterstates
+
             if additional_afterstates:
                 is_dice_0_intermediate_state_eligible[i] = 1
             else:
@@ -98,10 +293,11 @@ def get_action_space(board, dice_values, player_id):
         action_space_list_dice_1_then_dice_0 = []
         is_dice_1_intermediate_state_eligible = np.zeros((len(action_space_list_dice_1), ))
         for i in range(len(action_space_list_dice_1)):
-            additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_1[i],
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_dice_1[i],
                                                                           dice_values[0],
                                                                           player_id)
             action_space_list_dice_1_then_dice_0 += additional_afterstates
+
             if additional_afterstates:
                 is_dice_1_intermediate_state_eligible[i] = 1
             else:
@@ -134,12 +330,12 @@ def get_action_space(board, dice_values, player_id):
     # else, if the dice have the same value
     else:
         # Step 1: determine slots that contain movable pieces of player_id for first move
-        action_space_list_move_1 = get_possible_afterstates_single_dice(board, dice_values[0], player_id)
+        action_space_list_move_1, afterstate_origin_destination_pair_list_move_1 = get_possible_afterstates_single_dice(board, dice_values[0], player_id)
 
         # Step 2a: determine slots that contain movable pieces of player_id for second move
         action_space_list_move_2 = []
         for i in range(len(action_space_list_move_1)):
-            additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_1[i],
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_1[i],
                                                                           dice_values[0],
                                                                           player_id)
             action_space_list_move_2 += additional_afterstates
@@ -147,15 +343,15 @@ def get_action_space(board, dice_values, player_id):
         # Step 2b: determine slots that contain movable pieces of player_id for third move
         action_space_list_move_3 = []
         for i in range(len(action_space_list_move_2)):
-            additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_2[i],
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_2[i],
                                                                           dice_values[0],
                                                                           player_id)
             action_space_list_move_3 += additional_afterstates
 
-        # Step 2c: determine slots that contain movable pieces of player_id for third move
+        # Step 2c: determine slots that contain movable pieces of player_id for fourth move
         action_space_list_move_4 = []
         for i in range(len(action_space_list_move_3)):
-            additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_3[i],
+            additional_afterstates, corresponding_moves_list_additional_afterstates = get_possible_afterstates_single_dice(action_space_list_move_3[i],
                                                                           dice_values[0],
                                                                           player_id)
             action_space_list_move_4 += additional_afterstates
@@ -214,7 +410,7 @@ def would_move_get_player_stuck(board, origin, destination, player_id, remaining
     elif player_id == 1 and potential_next_board.is_black_endgame():
         return False
 
-    action_space = get_possible_afterstates_single_dice(potential_next_board, remaining_dice_move, player_id)
+    action_space, _ = get_possible_afterstates_single_dice(potential_next_board, remaining_dice_move, player_id)
 
     # if action_space is not empty, player is not stuck
     if action_space:

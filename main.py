@@ -33,12 +33,12 @@ if __name__ == '__main__':
         #                     [3, 2, 1, 7, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         #                     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
-        initial_position = [[0, 0, 0, 0, 0, 2, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 1, 3],
-                            [5, 0, 1, 0, 0, 0, 1, 3, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-                            [0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]]
+        initial_position = [[2, 2, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2],
+                            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
         # initial dice state
-        dice_values = [3, 3]
+        dice_values = [1, 1]
 
         # instantiate board object with given initial position
         my_board = Board(24, 15, initial_position)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         # test afterstates functions.
         # afterstates1 = hf.get_possible_afterstates_single_dice(my_board, dice_values[0], 1)
         # afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 1)
-        # afterstates, _, _, _, _ = hf.get_action_space(my_board, dice_values, 1)
+        afterstates, _, _ = hf.get_action_space(my_board, dice_values, 0)
 
     if main_cfg['enable_gui']:
         enable_logs = bool(main_cfg['enable_logs'])
