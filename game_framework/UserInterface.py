@@ -295,7 +295,7 @@ class UserInterface:
         new_height_arrow = round(self.normalized_arrow_height * new_height_background)
 
         if self.game_manager.current_game_state == GameState.PLAYER_1_TURN \
-                and self.game_manager.game_board.is_white_endgame():
+                and self.game_manager.game_board.is_white_almost_endgame():
             self.white_exit_arrow = self.img_copy_white_exit_arrow.resize((new_width_arrow, new_height_arrow))
             self.white_exit_arrow_image = ImageTk.PhotoImage(self.white_exit_arrow)
             self.board_canvas.create_image(round((10 / 612) * new_width_background),
@@ -303,7 +303,7 @@ class UserInterface:
                                            image=self.white_exit_arrow_image,
                                            anchor='nw')
         elif self.game_manager.current_game_state == GameState.PLAYER_2_TURN \
-                and self.game_manager.game_board.is_black_endgame():
+                and self.game_manager.game_board.is_black_almost_endgame():
 
             self.black_exit_arrow = self.img_copy_black_exit_arrow.resize((new_width_arrow, new_height_arrow))
             self.black_exit_arrow_image = ImageTk.PhotoImage(self.black_exit_arrow)
@@ -473,7 +473,7 @@ class UserInterface:
     def on_white_arrow_click(self):
         is_move_valid, remaining_dice_list_given_move = self.game_manager.is_valid_move(-1)
         if self.game_manager.current_game_state == GameState.PLAYER_1_TURN \
-                and self.game_manager.game_board.is_white_endgame() \
+                and self.game_manager.game_board.is_white_almost_endgame() \
                 and self.game_manager.current_selected_slot > -1 \
                 and is_move_valid:
             selected_slot = self.game_manager.current_selected_slot
@@ -486,11 +486,14 @@ class UserInterface:
             else:
                 logging.error("Illegal move caught")
                 assert False
+        else:
+            self.game_manager.current_selected_slot = -1
+            self.on_refresh_gui_event()
 
     def on_black_arrow_click(self):
         is_move_valid, remaining_dice_list_given_move = self.game_manager.is_valid_move(-1)
         if self.game_manager.current_game_state == GameState.PLAYER_2_TURN \
-                and self.game_manager.game_board.is_black_endgame() \
+                and self.game_manager.game_board.is_black_almost_endgame() \
                 and self.game_manager.current_selected_slot > -1 \
                 and is_move_valid:
 
@@ -505,6 +508,10 @@ class UserInterface:
             else:
                 logging.error("Illegal move caught")
                 assert False
+
+        else:
+            self.game_manager.current_selected_slot = -1
+            self.on_refresh_gui_event()
 
     def on_slot_click(self, clicked_slot):
         if self.game_manager.current_game_state == GameState.PLAYER_1_TURN:

@@ -63,7 +63,9 @@ class Board:
                 return False
 
         elif destination == -1:  # if end-game move
-            if player_id == 0 and self.is_white_endgame() and self.board_state[player_id, origin] > 0:
+            if player_id == 0 \
+                    and (self.is_white_endgame() or (self.is_white_almost_endgame() and origin < 18)) \
+                    and self.board_state[player_id, origin] > 0:
 
                 # if player is pinning at the origin, mark origin as unpinned
                 if self.is_player_pinning_at_location(origin, player_id) and self.board_state[player_id, origin] == 1:
@@ -71,7 +73,9 @@ class Board:
 
                 self.board_state[0, origin] = self.board_state[0, origin] - 1
                 return True
-            elif player_id == 1 and self.is_black_endgame() and self.board_state[player_id, origin] > 0:
+            elif player_id == 1 \
+                    and (self.is_black_endgame() or (self.is_black_almost_endgame() and origin >= 6)) \
+                    and self.board_state[player_id, origin] > 0:
 
                 # if player is pinning at the origin, mark origin as unpinned
                 if self.is_player_pinning_at_location(origin, player_id) and self.board_state[player_id, origin] == 1:
@@ -93,7 +97,7 @@ class Board:
 
     def is_white_endgame(self):
         # This function returns true if player 1 (white) is in the endgame phase
-        if np.all(self.board_state[0, 0:round(self.n_slots*0.75)] == 0) \
+        if np.sum(self.board_state[0, 0:round(self.n_slots*0.75)]) == 0 \
                 and not np.any(self.board_state[2, :] == -1):
             return True
         else:
@@ -101,7 +105,23 @@ class Board:
 
     def is_black_endgame(self):
         # This function returns true if player 2 (black) is in the endgame phase
-        if np.all(self.board_state[1, round(self.n_slots*0.25):self.n_slots] == 0) \
+        if np.sum(self.board_state[1, round(self.n_slots*0.25):self.n_slots]) == 0 \
+                and not np.any(self.board_state[2, :] == 1):
+            return True
+        else:
+            return False
+
+    def is_white_almost_endgame(self):
+        # This function returns true if player 1 (white) is in the endgame phase
+        if np.sum(self.board_state[0, 0:round(self.n_slots*0.75)]) <= 1 \
+                and not np.any(self.board_state[2, :] == -1):
+            return True
+        else:
+            return False
+
+    def is_black_almost_endgame(self):
+        # This function returns true if player 2 (black) is in the endgame phase
+        if np.sum(self.board_state[1, round(self.n_slots*0.25):self.n_slots]) <= 1 \
                 and not np.any(self.board_state[2, :] == 1):
             return True
         else:
