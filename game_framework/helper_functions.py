@@ -338,10 +338,10 @@ def get_action_space(board, dice_values, player_id):
     # else, if the dice have the same value
     else:
         # Step 1: determine slots that contain movable pieces of player_id for first move
-        action_space_list_move_1, afterstate_origin_destination_pair_list_move_1 = get_intermediate_afterstates(board,
-                                                                                                                dice_values[
-                                                                                                                    0],
-                                                                                                                player_id)
+        action_space_list_move_1, \
+          afterstate_origin_destination_pair_list_move_1 = get_intermediate_afterstates(board,
+                                                                                        dice_values[0],
+                                                                                        player_id)
 
         # Step 2a: determine slots that contain movable pieces of player_id for second move
         action_space_list_move_2 = []
@@ -463,8 +463,8 @@ def determine_moves_from_board_change(start_board, end_board, dice_roll, player_
                 elif (abs(initial_slot_id_list[1] - destination_slot_id_list[0]) == dice_roll[0]) \
                         or (abs(initial_slot_id_list[1] - destination_slot_id_list[0]) == dice_roll[1]):
 
-                    source_destination_list = [[initial_slot_id_list[1], destination_slot_id_list[0]],
-                                               [initial_slot_id_list[0], -1]]
+                    source_destination_list = [[initial_slot_id_list[0], -1],
+                                               [initial_slot_id_list[1], destination_slot_id_list[0]]]
                 else:
                     assert False
 
@@ -510,19 +510,10 @@ def determine_moves_from_board_change(start_board, end_board, dice_roll, player_
 
         if len(initial_slot_id_list) == 4:
             if len(destination_slot_id_list) == 4:
-
-                if player_id == 0:
-                    source_destination_list = [[initial_slot_id_list[0], destination_slot_id_list[0]],
-                                               [initial_slot_id_list[1], destination_slot_id_list[1]],
-                                               [initial_slot_id_list[2], destination_slot_id_list[2]],
-                                               [initial_slot_id_list[3], destination_slot_id_list[3]]]
-                elif player_id == 1:
-                    source_destination_list = [[initial_slot_id_list[0], destination_slot_id_list[0]],
-                                               [initial_slot_id_list[1], destination_slot_id_list[1]],
-                                               [initial_slot_id_list[2], destination_slot_id_list[2]],
-                                               [initial_slot_id_list[3], destination_slot_id_list[3]]]
-                else:
-                    assert False
+                source_destination_list = [[initial_slot_id_list[0], destination_slot_id_list[0]],
+                                           [initial_slot_id_list[1], destination_slot_id_list[1]],
+                                           [initial_slot_id_list[2], destination_slot_id_list[2]],
+                                           [initial_slot_id_list[3], destination_slot_id_list[3]]]
 
             elif len(destination_slot_id_list) == 3:
 
@@ -844,27 +835,33 @@ def determine_moves_from_board_change(start_board, end_board, dice_roll, player_
 
                 if player_id == 0:
 
-                    if destination_slot_id_list == potential_dest_list_1[0] and potential_dest_list_1[1] >= len(position_diff):
+                    if destination_slot_id_list == potential_dest_list_1[0] \
+                            and potential_dest_list_1[1] >= len(position_diff):
                         source_destination_list = [[initial_slot_id_list[0], initial_slot_id_list[0] + 3 * dice_val],
                                                    [initial_slot_id_list[1], -1]]
 
-                    elif destination_slot_id_list == potential_dest_list_2[0] and potential_dest_list_2[1] >= len(position_diff):
+                    elif destination_slot_id_list == potential_dest_list_2[0] \
+                            and potential_dest_list_2[1] >= len(position_diff):
                         source_destination_list = [[initial_slot_id_list[0], initial_slot_id_list[0] + 2 * dice_val],
                                                    [initial_slot_id_list[1], -1]]
 
-                    elif destination_slot_id_list == potential_dest_list_3[0] and potential_dest_list_3[1] >= len(position_diff):
+                    elif destination_slot_id_list == potential_dest_list_3[0] \
+                            and potential_dest_list_3[1] >= len(position_diff):
                         source_destination_list = [[initial_slot_id_list[0], initial_slot_id_list[0] + 1 * dice_val],
                                                    [initial_slot_id_list[1], -1]]
 
-                    elif destination_slot_id_list == potential_dest_list_4[0] and potential_dest_list_4[1] >= len(position_diff):
+                    elif destination_slot_id_list == potential_dest_list_4[0] \
+                            and potential_dest_list_4[1] >= len(position_diff):
                         source_destination_list = [[initial_slot_id_list[0], initial_slot_id_list[0] + 2 * dice_val],
                                                    [initial_slot_id_list[1], -1]]
 
-                    elif destination_slot_id_list == potential_dest_list_5[0] and potential_dest_list_5[1] >= len(position_diff):
+                    elif destination_slot_id_list == potential_dest_list_5[0] \
+                            and potential_dest_list_5[1] >= len(position_diff):
                         source_destination_list = [[initial_slot_id_list[0], initial_slot_id_list[0] + 1 * dice_val],
                                                    [initial_slot_id_list[1], -1]]
 
-                    elif destination_slot_id_list == potential_dest_list_6[0] and potential_dest_list_6[1] >= len(position_diff):
+                    elif destination_slot_id_list == potential_dest_list_6[0] \
+                            and potential_dest_list_6[1] >= len(position_diff):
                         source_destination_list = [[initial_slot_id_list[0], initial_slot_id_list[0] + 1 * dice_val],
                                                    [initial_slot_id_list[1], -1]]
                     else:
@@ -930,11 +927,15 @@ def determine_moves_from_board_change(start_board, end_board, dice_roll, player_
 
         if player_id == 0:
             for i in range(len(source_destination_list)):
-                is_success = start_board_copy.move_piece_from_slot_to_slot(source_destination_list[i][0], source_destination_list[i][1], player_id)
+                is_success = start_board_copy.move_piece_from_slot_to_slot(source_destination_list[i][0],
+                                                                           source_destination_list[i][1],
+                                                                           player_id)
                 assert is_success
         elif player_id == 1:
             for i in range(len(source_destination_list)-1, -1, -1):
-                is_success = start_board_copy.move_piece_from_slot_to_slot(source_destination_list[i][0], source_destination_list[i][1], player_id)
+                is_success = start_board_copy.move_piece_from_slot_to_slot(source_destination_list[i][0],
+                                                                           source_destination_list[i][1],
+                                                                           player_id)
                 assert is_success
         else:
             assert False
