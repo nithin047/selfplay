@@ -411,6 +411,7 @@ def get_action_space(board, dice_values, player_id):
 
 def determine_moves_from_board_change(start_board, end_board, dice_roll, player_id, enable_check):
     position_diff = end_board.board_state[player_id, :] - start_board.board_state[player_id, :]
+    position_diff = position_diff.astype(int)
 
     initial_slot_id_list = []
     destination_slot_id_list = []
@@ -481,13 +482,13 @@ def determine_moves_from_board_change(start_board, end_board, dice_roll, player_
                         abs(initial_slot_id_list[0] - destination_slot_id_list[0]) == dice_roll[1] or \
                         abs(initial_slot_id_list[0] - destination_slot_id_list[0]) == (dice_roll[0] + dice_roll[1]):
 
-                    source_destination_list = [initial_slot_id_list[0], destination_slot_id_list[0]]
+                    source_destination_list = [[initial_slot_id_list[0], destination_slot_id_list[0]]]
 
                 else:
                     assert False
 
             elif len(destination_slot_id_list) == 0:
-                source_destination_list = [initial_slot_id_list[0], -1]
+                source_destination_list = [[initial_slot_id_list[0], -1]]
 
             else:
                 assert False

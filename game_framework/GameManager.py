@@ -90,16 +90,26 @@ class GameManager:
     def determine_first_player(self, player_id=None):
         # This function selects a first player at random or from input if provided
         if player_id is None:
-            first_player = rd.randint(1, 2)
+            first_player = rd.randint(0, 1)
         else:
             first_player = player_id
 
-        if first_player == 1:
+        if first_player == 0:
             self.transition_to_state(GameState.PLAYER_1_DICE_ROLL)
             logging.info("White Starts!")
         else:
             self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
             logging.info("Black Starts!")
+
+    def get_current_player_id(self):
+        # returns current player id using current game state
+
+        if self.current_game_state == GameState.PLAYER_1_TURN or self.current_game_state == GameState.PLAYER_1_DICE_ROLL:
+            return 0
+        elif self.current_game_state == GameState.PLAYER_2_TURN or self.current_game_state == GameState.PLAYER_2_DICE_ROLL:
+            return 1
+        else:
+            return -1
 
     def dice_rolled(self, dice_roll=None):
         # This function rolls the dice and populates the remaining_dice_moves list
@@ -241,7 +251,7 @@ class GameManager:
             self.log_manager.mark_game_over(0, 1)
             self.log_manager.write_log_to_file()
             logging.info('White wins! 1 Point.')
-            return True
+            return 1
 
         elif self.game_board.is_game_over_player_1() == 2:
             self.transition_to_state(GameState.PLAYER_1_GAME_OVER_2_POINTS)
@@ -250,7 +260,7 @@ class GameManager:
             self.log_manager.mark_game_over(0, 2)
             self.log_manager.write_log_to_file()
             logging.info('White wins! 2 Points!')
-            return True
+            return 2
 
         elif self.game_board.is_game_over_player_2() == 1:
             self.transition_to_state(GameState.PLAYER_2_GAME_OVER_1_POINT)
@@ -259,7 +269,7 @@ class GameManager:
             self.log_manager.mark_game_over(1, 1)
             self.log_manager.write_log_to_file()
             logging.info('Black wins! 1 Point.')
-            return True
+            return 1
 
         elif self.game_board.is_game_over_player_2() == 2:
             self.transition_to_state(GameState.PLAYER_2_GAME_OVER_2_POINTS)
@@ -268,7 +278,7 @@ class GameManager:
             self.log_manager.mark_game_over(1, 2)
             self.log_manager.write_log_to_file()
             logging.info('Black wins! 2 Points!')
-            return True
+            return 2
 
         else:
-            return False
+            return 0

@@ -1,5 +1,7 @@
 import xmltodict
 import argparse
+import numpy.random as rd
+import torch
 from model.define_model import initialize_ml_model
 
 from game_framework.UserInterface import UserInterface
@@ -25,6 +27,13 @@ if __name__ == '__main__':
     main_cfg = cfg_dict['main_options']
 
     logging.basicConfig(level=logging.INFO)
+
+    # set random seed for reproducibility
+    random_seed = main_cfg.get('global_random_seed', None)
+    if random_seed is not None:
+        rd.seed(random_seed)
+        torch.manual_seed(random_seed)
+
 
     if main_cfg['test_functionality']:
         # use this initial position for debugging. Instead of starting from the beginning of the game, one can start
