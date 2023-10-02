@@ -1,5 +1,7 @@
 import xmltodict
 import argparse
+import numpy.random as rd
+import torch
 from model.define_model import initialize_ml_model
 
 from game_framework.UserInterface import UserInterface
@@ -25,6 +27,13 @@ if __name__ == '__main__':
     main_cfg = cfg_dict['main_options']
 
     logging.basicConfig(level=logging.INFO)
+
+    # set random seed for reproducibility
+    random_seed = cfg_dict.get('global_random_seed', None)
+    if random_seed is not None:
+        rd.seed(random_seed)
+        torch.manual_seed(random_seed)
+
 
     if main_cfg['test_functionality']:
         # use this initial position for debugging. Instead of starting from the beginning of the game, one can start
@@ -52,9 +61,7 @@ if __name__ == '__main__':
         my_board = Board(24, 15, initial_position)
         my_board2 = Board(24, 15, final_position)
 
-        # test afterstates functions.
-        # afterstates1 = hf.get_possible_afterstates_single_dice(my_board, dice_values[0], 1)
-        # afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 1)
+        # test afterstates function
         afterstates, _, _ = hf.get_action_space(my_board, dice_values, 1)
 
         source_destination_list = hf.determine_moves_from_board_change(my_board, my_board2, dice_values, 1, True)
@@ -74,4 +81,19 @@ if __name__ == '__main__':
         model = initialize_ml_model(cfg_dict['model'])
 
     if main_cfg['game_playthrough']:
-        game_playthrough(cfg_dict)
+        game_result, log_file_path = game_playthrough(cfg_dict)
+        if game_result > 0:
+            print(f'White wins by {abs(game_result)} points!')
+        else:
+            print(f'Black wins by {abs(game_result)} points!')
+
+    if main_cfg['log_runthrough']:
+        enable_logs = bool(main_cfg['enable_logs'])
+
+        if cfg_dict['log_runthrough']['use_cfg_log_path']:
+            log_file_path = cfg_dict['log_runthrough']['log_path']
+
+        # Instantiate GUI object and playthrough the log
+        my_log_animation_gui = UserInterfaceLogAnimation(log_file_path)
+
+

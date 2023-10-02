@@ -1,14 +1,14 @@
 <settings>
 
-    <global_random_seed>156</global_random_seed>
+    <global_random_seed>506</global_random_seed>
 
     <main_options>
-        <test_functionality>1</test_functionality>
-        <enable_gui>1</enable_gui>
-        <enable_logs>1</enable_logs>
+        <test_functionality>0</test_functionality>
+        <enable_gui>0</enable_gui>
+        <enable_logs>0</enable_logs>
         <init_model>0</init_model>
-        <game_playthrough>0</game_playthrough>
-        <log_runthrough>0</log_runthrough>
+        <game_playthrough>1</game_playthrough>
+        <log_runthrough>1</log_runthrough>
     </main_options>
 
     <model>
@@ -26,7 +26,8 @@
     </gameplay>
 
     <log_runthrough>
-        <log_path>path\to\log</log_path>
+        <use_cfg_log_path>0</use_cfg_log_path>
+        <log_path>C:\projects\selfplay\Logs\20231001\game_log_20231001_174033.txt</log_path>
     </log_runthrough>
 
 </settings>
