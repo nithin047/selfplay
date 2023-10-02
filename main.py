@@ -61,9 +61,7 @@ if __name__ == '__main__':
         my_board = Board(24, 15, initial_position)
         my_board2 = Board(24, 15, final_position)
 
-        # test afterstates functions.
-        # afterstates1 = hf.get_possible_afterstates_single_dice(my_board, dice_values[0], 1)
-        # afterstates2 = hf.get_possible_afterstates_single_dice(my_board, dice_values[1], 1)
+        # test afterstates function
         afterstates, _, _ = hf.get_action_space(my_board, dice_values, 1)
 
         source_destination_list = hf.determine_moves_from_board_change(my_board, my_board2, dice_values, 1, True)
@@ -95,7 +93,7 @@ if __name__ == '__main__':
         if cfg_dict['log_runthrough']['use_cfg_log_path']:
             log_file_path = cfg_dict['log_runthrough']['log_path']
 
-        # Instantiate GUI object
+        # Instantiate GUI object and playthrough the log
         my_log_animation_gui = UserInterfaceLogAnimation(log_file_path)
 
 

@@ -43,7 +43,6 @@ def game_playthrough(cfg):
     while not end_of_game_flag:
 
         # roll dice -- this function implicitly checks and handles the situation where a player is stuck
-        # TODO: what happens if both players are stuck? Catch this case.
         stuck_player_flag = game_manager.dice_rolled()
         if stuck_player_flag:
             continue
