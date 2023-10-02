@@ -211,8 +211,10 @@ class GameManager:
         if is_successful_move:
             self.log_manager.add_move(origin, destination)
 
+            is_game_over_value = self.is_game_over()
+
             # check if game is over
-            if not self.is_game_over() and self.is_current_board_state_afterstate():
+            if not is_game_over_value and self.is_current_board_state_afterstate():
                 if self.current_game_state == GameState.PLAYER_1_TURN:
                     self.transition_to_state(GameState.PLAYER_2_DICE_ROLL)
                 elif self.current_game_state == GameState.PLAYER_2_TURN:
@@ -221,7 +223,7 @@ class GameManager:
                     logging.error("State Error")
                     return False
 
-        return is_successful_move
+        return is_successful_move, is_game_over_value
 
     def is_current_board_state_afterstate(self):
         if not self.afterstates:
@@ -269,7 +271,7 @@ class GameManager:
             self.log_manager.mark_game_over(1, 1)
             self.log_manager.write_log_to_file()
             logging.info('Black wins! 1 Point.')
-            return 1
+            return -1
 
         elif self.game_board.is_game_over_player_2() == 2:
             self.transition_to_state(GameState.PLAYER_2_GAME_OVER_2_POINTS)
@@ -278,7 +280,7 @@ class GameManager:
             self.log_manager.mark_game_over(1, 2)
             self.log_manager.write_log_to_file()
             logging.info('Black wins! 2 Points!')
-            return 2
+            return -2
 
         else:
             return 0

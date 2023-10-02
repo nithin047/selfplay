@@ -764,22 +764,29 @@ def determine_moves_from_board_change(start_board, end_board, dice_roll, player_
         elif len(initial_slot_id_list) == 2:
 
             potential_dest_list_1 = [initial_slot_id_list[0] + 3 * dice_val * mark_player_pinning(player_id),
-                                     initial_slot_id_list[1] + 1 * dice_val * mark_player_pinning(player_id)].sort()
+                                     initial_slot_id_list[1] + 1 * dice_val * mark_player_pinning(player_id)]
 
             potential_dest_list_2 = [initial_slot_id_list[0] + 2 * dice_val * mark_player_pinning(player_id),
-                                     initial_slot_id_list[1] + 2 * dice_val * mark_player_pinning(player_id)].sort()
+                                     initial_slot_id_list[1] + 2 * dice_val * mark_player_pinning(player_id)]
 
             potential_dest_list_3 = [initial_slot_id_list[0] + 1 * dice_val * mark_player_pinning(player_id),
-                                     initial_slot_id_list[1] + 3 * dice_val * mark_player_pinning(player_id)].sort()
+                                     initial_slot_id_list[1] + 3 * dice_val * mark_player_pinning(player_id)]
 
             potential_dest_list_4 = [initial_slot_id_list[0] + 2 * dice_val * mark_player_pinning(player_id),
-                                     initial_slot_id_list[1] + 1 * dice_val * mark_player_pinning(player_id)].sort()
+                                     initial_slot_id_list[1] + 1 * dice_val * mark_player_pinning(player_id)]
 
             potential_dest_list_5 = [initial_slot_id_list[0] + 1 * dice_val * mark_player_pinning(player_id),
-                                     initial_slot_id_list[1] + 2 * dice_val * mark_player_pinning(player_id)].sort()
+                                     initial_slot_id_list[1] + 2 * dice_val * mark_player_pinning(player_id)]
 
             potential_dest_list_6 = [initial_slot_id_list[0] + 1 * dice_val * mark_player_pinning(player_id),
-                                     initial_slot_id_list[1] + 1 * dice_val * mark_player_pinning(player_id)].sort()
+                                     initial_slot_id_list[1] + 1 * dice_val * mark_player_pinning(player_id)]
+
+            potential_dest_list_1.sort()
+            potential_dest_list_2.sort()
+            potential_dest_list_3.sort()
+            potential_dest_list_4.sort()
+            potential_dest_list_5.sort()
+            potential_dest_list_6.sort()
 
             if len(destination_slot_id_list) == 2:
                 if destination_slot_id_list == potential_dest_list_1:

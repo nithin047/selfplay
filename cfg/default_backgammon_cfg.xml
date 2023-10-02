@@ -8,6 +8,7 @@
         <enable_logs>1</enable_logs>
         <init_model>0</init_model>
         <game_playthrough>0</game_playthrough>
+        <log_runthrough>0</log_runthrough>
     </main_options>
 
     <model>
@@ -23,5 +24,9 @@
         <action_choice>random</action_choice>
         <model_choice>random</model_choice>
     </gameplay>
+
+    <log_runthrough>
+        <log_path>path\to\log</log_path>
+    </log_runthrough>
 
 </settings>

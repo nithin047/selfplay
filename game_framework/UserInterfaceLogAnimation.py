@@ -83,4 +83,4 @@ class UserInterfaceLogAnimation(UserInterface):
                 assert False
             self.on_refresh_gui_event()
             self.window.update()
-            time.sleep(0.2)
+            time.sleep(0.1)

@@ -6,6 +6,7 @@ from model.define_model import initialize_ml_model
 
 import numpy as np
 import torch
+import os
 import copy as cp
 
 
@@ -29,6 +30,11 @@ def game_playthrough(cfg):
 
     # start game by initializing GameManager
     game_manager = GameManager(None, None, None, enable_logs)
+
+    # get log file path for this particular walkthrough
+    log_file_path = os.path.join(os.getcwd(),
+                                 game_manager.log_manager.outfolder_name,
+                                 game_manager.log_manager.outfile_name)
 
     # initialize a flag that will tell us when to end the game loop below
     end_of_game_flag = False
@@ -74,22 +80,26 @@ def game_playthrough(cfg):
             # play best move
             if current_player_id == 0:
                 for i in range(len(source_destination_list)):
-                    game_manager.move_piece_from_slot_to_slot(source_destination_list[i][0],
+                    _, is_game_over_status = game_manager.move_piece_from_slot_to_slot(source_destination_list[i][0],
                                                                                source_destination_list[i][1],
                                                                                current_player_id)
+
+                    # check for end of game, if so, break the loop
+                    if is_game_over_status:
+                        return is_game_over_status, log_file_path
 
             elif current_player_id == 1:
                 for i in range(len(source_destination_list) - 1, -1, -1):
-                    game_manager.move_piece_from_slot_to_slot(source_destination_list[i][0],
+                    _, is_game_over_status = game_manager.move_piece_from_slot_to_slot(source_destination_list[i][0],
                                                                                source_destination_list[i][1],
                                                                                current_player_id)
 
+                    # check for end of game, if so, break the loop
+                    if is_game_over_status:
+                        return is_game_over_status, log_file_path
 
-        # check for end of game, if so, break the loop
-        game_over_status = game_manager.is_game_over()
 
-        if game_over_status:
-            return game_over_status
+
 
 
 

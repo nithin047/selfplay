@@ -29,7 +29,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     # set random seed for reproducibility
-    random_seed = main_cfg.get('global_random_seed', None)
+    random_seed = cfg_dict.get('global_random_seed', None)
     if random_seed is not None:
         rd.seed(random_seed)
         torch.manual_seed(random_seed)
@@ -83,4 +83,19 @@ if __name__ == '__main__':
         model = initialize_ml_model(cfg_dict['model'])
 
     if main_cfg['game_playthrough']:
-        game_playthrough(cfg_dict)
+        game_result, log_file_path = game_playthrough(cfg_dict)
+        if game_result > 0:
+            print(f'White wins by {abs(game_result)} points!')
+        else:
+            print(f'Black wins by {abs(game_result)} points!')
+
+    if main_cfg['log_runthrough']:
+        enable_logs = bool(main_cfg['enable_logs'])
+
+        if cfg_dict['log_runthrough']['use_cfg_log_path']:
+            log_file_path = cfg_dict['log_runthrough']['log_path']
+
+        # Instantiate GUI object
+        my_log_animation_gui = UserInterfaceLogAnimation(log_file_path)
+
+
