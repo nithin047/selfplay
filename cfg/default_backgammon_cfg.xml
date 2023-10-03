@@ -3,10 +3,6 @@
     <global_random_seed>156</global_random_seed>
 
     <main_options>
-        <test_functionality>1</test_functionality>
-        <enable_gui>1</enable_gui>
-        <enable_logs>1</enable_logs>
-        <init_model>0</init_model>
         <game_playthrough>0</game_playthrough>
         <log_runthrough>0</log_runthrough>
     </main_options>
