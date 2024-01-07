@@ -19,3 +19,4 @@ tkcalendar==1.6.1
 urllib3==1.26.14
 yfinance==0.2.12
 tqdm==4.66.1
+gymnasium==0.26.3
