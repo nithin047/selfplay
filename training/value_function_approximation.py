@@ -38,9 +38,15 @@ class ValueFunctionWithNN(ValueFunctionWithApproximation):
         """
         cfg: config_dict
         """
-        model_cfg = cfg['model']
+        self.model_cfg = cfg['model']
+        self.gameplay_cfg = cfg['gameplay']
+        self.model_choice = self.gameplay_cfg['model_choice']
 
-        self.model = initialize_ml_model(model_cfg)
+        if self.model_choice == 'random':
+            self.model = initialize_ml_model(self.model_cfg)
+        else:
+            raise ValueError(f'Undefined model choice {self.model_choice} for gameplay provided!')
+
         self.model = self.model.float()
 
         # TODO: call this from optimizer_utils
